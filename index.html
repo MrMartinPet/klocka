@@ -3,473 +3,399 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-<title>Klockträning – Analog & Digital</title>
+<title>Klockträning</title>
 <style>
   :root{
-    --bg:#f7fafc;           /* ljus bakgrund */
-    --card:#ffffff;         /* kortbakgrund */
-    --ink:#1f2937;          /* text */
-    --primary:#3b82f6;      /* blå */
-    --ok:#10b981;           /* grön */
-    --warn:#f59e0b;         /* orange */
-    --err:#ef4444;          /* röd */
-    --muted:#6b7280;
-    --shadow:0 10px 30px rgba(0,0,0,.07);
-    --radius:18px;
+    --bg:#f7fafc; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --pri:#2563eb; --ok:#16a34a; --err:#ef4444; --ring:rgba(37,99,235,.14);
+    --radius:20px; --shadow:0 10px 30px rgba(2,6,23,.08);
   }
-  html,body{height:100%;}
+  *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
-    background:var(--bg); color:var(--ink);
-    display:flex; align-items:center; justify-content:center;
+    margin:0; font-family: ui-sans-serif, -apple-system, Segoe UI, Inter, Roboto, Arial;
+    background:linear-gradient(180deg,#f8fafc, #eef2ff 40%, #e2e8f0);
+    color:var(--ink); display:flex; align-items:center; justify-content:center;
   }
-  .app{ width:min(920px, 100%); padding:16px; }
-  .grid{
-    display:grid; gap:16px;
-    grid-template-columns: 1fr; 
+  .app{width:min(960px,100%); padding:16px;}
+  .wrap{
+    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px;
+    display:grid; gap:14px; grid-template-rows:auto 1fr auto;
+    min-height: calc(100vh - 32px);
   }
-  @media (min-width: 880px){
-    .grid{ grid-template-columns: 360px 1fr; }
+  .topbar{
+    display:flex; align-items:center; gap:10px; justify-content:space-between;
   }
-  .card{
-    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:16px;
-  }
-  h1{font-size:1.4rem; margin:4px 0 12px}
-  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .brand{font-weight:800; letter-spacing:.2px}
+  .chipbar{display:flex; gap:8px; flex-wrap:wrap}
   .chip{
-    border:1px solid #e5e7eb; padding:10px 14px; border-radius:999px; cursor:pointer; user-select:none;
-    background:#fff;
+    padding:10px 14px; border:1px solid #e2e8f0; border-radius:999px; cursor:pointer; user-select:none; background:#fff;
+    font-weight:600; font-size:.95rem;
   }
-  .chip input{ display:none; }
-  .chip.active{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(59,130,246,.15);}
-  .toggle{ display:flex; align-items:center; gap:10px; }
-  .toggle input{ width:48px; height:28px; appearance:none; background:#e5e7eb; border-radius:999px; position:relative; outline:none; cursor:pointer;}
-  .toggle input:checked{ background:var(--primary); }
-  .toggle input:before{
-    content:""; position:absolute; width:22px; height:22px; border-radius:50%; background:#fff; top:3px; left:3px; transition:.2s;
-    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  .chip.active{ border-color:var(--pri); box-shadow:0 0 0 4px var(--ring); }
+  .stats{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .pill{background:#f1f5f9; padding:8px 12px; border-radius:999px; font-size:.9rem}
+
+  .stage{
+    display:grid; grid-template-columns:1fr; gap:14px; place-items:center;
   }
-  .toggle input:checked:before{ left:23px; }
-  .clock-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; }
-  canvas{ width:min(300px, 85vw); height:min(300px, 85vw); touch-action:none; }
+  .clock-card{ width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  canvas{width:min(420px, 90vw); height:min(420px, 90vw); touch-action:none;}
+
+  .inline{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center;
+  }
   .kbd{
-    padding:12px 14px; border:1px solid #e5e7eb; border-radius:12px; font-size:1.1rem; width:140px;
+    padding:14px 16px; border:1px solid #e2e8f0; border-radius:14px; font-size:1.2rem; width:150px; text-align:center;
+    outline:none;
   }
-  .btn{
-    padding:14px 18px; border:none; border-radius:12px; font-weight:600; cursor:pointer; 
-    background:var(--primary); color:#fff; box-shadow:var(--shadow); font-size:1rem;
+  .kbd:focus{ box-shadow:0 0 0 4px var(--ring); border-color:var(--pri);}
+  .btn{padding:14px 16px; border:none; border-radius:14px; font-weight:800; cursor:pointer; background:var(--pri); color:#fff;}
+  .btn.ghost{ background:#fff; color:var(--ink); border:1px solid #e2e8f0; }
+  .btn.flat{ background:#f1f5f9; color:#0f172a; }
+  .btn:active{ transform:translateY(1px); }
+
+  .dock{
+    display:grid; gap:10px;
   }
-  .btn.secondary{ background:#e5e7eb; color:#111827; }
-  .btn.ghost{ background:#fff; border:1px solid #e5e7eb; color:#111827;}
-  .btn:active{ transform: translateY(1px); }
-  .stat{
-    display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;
+  .bar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
   }
-  .pill{
-    background:#f3f4f6; border-radius:999px; padding:8px 12px; font-size:.95rem;
+  .seg{
+    display:flex; border:1px solid #e2e8f0; border-radius:999px; overflow:hidden; background:#fff;
   }
-  .msg{ font-weight:700; margin:6px 0 0; }
+  .seg button{
+    padding:10px 14px; border:none; background:transparent; cursor:pointer; font-weight:700;
+  }
+  .seg button.active{ background:var(--pri); color:#fff; }
+
+  .msg{ text-align:center; font-weight:800; min-height:1.6em; }
   .msg.ok{ color:var(--ok); }
   .msg.err{ color:var(--err); }
-  .muted{ color:var(--muted); font-size:.92rem; }
-  .section-title{ font-weight:700; margin:6px 0 8px; }
-  .grow{ flex:1; }
-  .spacer{ height:8px; }
+  .muted{ color:var(--muted); }
+
+  @media (min-width: 880px){
+    .wrap{grid-template-rows:auto 1fr auto}
+  }
 </style>
 </head>
 <body>
   <div class="app">
-    <div class="grid">
-      <!-- Kontroller -->
-      <div class="card">
-        <h1>⏰ Klockträning</h1>
-
-        <div class="section">
-          <div class="section-title">Läge</div>
-          <div id="modeRow" class="row"></div>
-          <div class="muted">• <b>Skriv tiden</b>: Läs av analog klocka och skriv 24-timmars tid (HH:MM).<br>
-            • <b>Ställ visarna</b>: Få en digital tid (24h) och ställ analog 12h korrekt.<br>
-            • <b>Mix</b>: Blandat.</div>
+    <div class="wrap">
+      <!-- Topp -->
+      <div class="topbar">
+        <div class="brand">⏰ Klockträning</div>
+        <div class="stats">
+          <div class="pill">Streak <span id="streak">0</span></div>
+          <div class="pill">Bästa <span id="best">0</span></div>
+          <div class="pill">Rätt <span id="correct">0</span></div>
         </div>
-
-        <div class="spacer"></div>
-
-        <div class="section">
-          <div class="section-title">Nivå</div>
-          <div id="levelRow" class="row"></div>
-          <div class="muted">Lätt: :00 och :30 • Medel: 5-min • Svår: minutprecision</div>
-        </div>
-
-        <div class="spacer"></div>
-
-        <div class="row">
-          <label class="toggle">
-            <input id="compToggle" type="checkbox">
-            <span>Tävlingsläge (rätt i rad)</span>
-          </label>
-          <button id="newBtn" class="btn ghost">Ny uppgift</button>
-          <button id="checkBtn" class="btn">Kolla svar</button>
-        </div>
-
-        <div class="stat">
-          <div class="pill">Rätt i rad: <span id="streak">0</span></div>
-          <div class="pill">Bästa streak: <span id="best">0</span></div>
-          <div class="pill">Totalt rätt: <span id="correct">0</span></div>
-        </div>
-        <div id="feedback" class="msg muted">Redo!</div>
       </div>
 
-      <!-- Övningsyta -->
-      <div class="card">
-        <div class="clock-wrap">
-          <canvas id="clock" width="500" height="500" aria-label="Analog klocka"></canvas>
+      <!-- Scen -->
+      <div class="stage">
+        <div class="clock-card">
+          <canvas id="clock" width="600" height="600" aria-label="Analog klocka"></canvas>
 
-          <div id="digitalBox" class="row" style="display:none;">
-            <div class="muted">Digital tid (24h):</div>
-            <div id="digitalLabel" style="font-size:1.6rem; font-weight:800;">14:25</div>
-            <div class="grow"></div>
-            <button id="centerBtn" class="btn secondary">Centrera visare</button>
+          <!-- Digital label (för STÄLL-läget) -->
+          <div id="digitalBox" class="inline" style="display:none;">
+            <div class="muted">Digital (24h)</div>
+            <div id="digitalLabel" style="font-size:1.8rem; font-weight:900;">14:25</div>
+            <button id="centerBtn" class="btn flat">Centrera</button>
           </div>
 
-          <div id="inputBox" class="row" style="display:none;">
-            <label for="timeInput" class="muted">Skriv 24h-tid (HH:MM):</label>
+          <!-- Textinmatning (för SKRIV-läget) -->
+          <div id="inputBox" class="inline" style="display:none;">
             <input id="timeInput" class="kbd" inputmode="numeric" placeholder="HH:MM" autocomplete="off" />
-            <button id="clearBtn" class="btn secondary">Rensa</button>
+            <button id="clearBtn" class="btn flat">Rensa</button>
+            <button id="checkBtn" class="btn">Kolla</button>
           </div>
 
-          <div class="muted">Tips: Nyp och dra i minut- eller timvisaren för att ställa tiden.</div>
+          <div id="feedback" class="msg muted">Redo</div>
         </div>
       </div>
-    </div>
 
-    <div class="muted" style="margin-top:10px; text-align:center;">
-      Byggd för iPhone & GitHub Pages • Sparar bästa streak i din webbläsare
+      <!-- Docka (kontroller) -->
+      <div class="dock">
+        <div class="bar">
+          <div id="modeRow" class="seg"></div>
+          <div id="levelRow" class="seg"></div>
+        </div>
+        <div class="bar">
+          <button id="newBtn" class="btn ghost">Ny</button>
+          <button id="compBtn" class="btn ghost" aria-pressed="false">Tävlingsläge</button>
+        </div>
+      </div>
     </div>
   </div>
 
 <script>
-/* ======= Tillstånd ======= */
+/* ========= State ========= */
 const modes = [
-  {key:'skriv', label:'Skriv tiden'},
-  {key:'stall', label:'Ställ visarna'},
+  {key:'skriv', label:'Skriv'},
+  {key:'stall', label:'Ställ'},
   {key:'mix',   label:'Mix'}
 ];
 const levels = [
-  {key:'latt',  label:'Lätt (:00, :30)', step:30},
-  {key:'medel', label:'Medel (5-min)',   step:5},
-  {key:'svar',  label:'Svår (1-min)',    step:1},
+  {key:'latt',  label:'Lätt',  step:30},  // :00, :30
+  {key:'medel', label:'Medel', step:5},   // 5-min
+  {key:'svar',  label:'Svår',  step:1},   // minut
 ];
 
 let state = {
-  mode: 'skriv',
+  mode: 'stall',
   level: 'latt',
-  step: 30,                 // min-steg
-  comp: false,              // tävlingsläge
+  step: 30,
+
+  comp: false,
   streak: 0,
   best: Number(localStorage.getItem('klock_best_streak')||0),
   correctTotal: 0,
 
-  // aktuell uppgift (mål)
   targetH24: 14,
   targetM: 30,
 
-  // användarens analog-inställning (12h)
-  userH12: 3,
+  // användarens visare (12h)
+  userH12: 12,
   userM: 0,
 
-  // interaktion
-  dragging: null, // 'min' | 'hour' | null
+  dragging: null,   // 'min' | 'hour' | null
+  lastMinuteRaw: 0, // för smidig varv-dragning
 };
 
-/* ======= UI-element ======= */
+/* ========= Elements ========= */
 const modeRow = document.getElementById('modeRow');
 const levelRow = document.getElementById('levelRow');
-const compToggle = document.getElementById('compToggle');
+
+const compBtn = document.getElementById('compBtn');
 const newBtn = document.getElementById('newBtn');
-const checkBtn = document.getElementById('checkBtn');
-const streakEl = document.getElementById('streak');
-const bestEl = document.getElementById('best');
-const correctEl = document.getElementById('correct');
-const feedback = document.getElementById('feedback');
 
 const clock = document.getElementById('clock');
 const ctx = clock.getContext('2d');
-const digitalBox = document.getElementById('digitalBox');
-const digitalLabel = document.getElementById('digitalLabel');
-const centerBtn = document.getElementById('centerBtn');
 
 const inputBox = document.getElementById('inputBox');
 const timeInput = document.getElementById('timeInput');
 const clearBtn = document.getElementById('clearBtn');
+const checkBtn = document.getElementById('checkBtn');
 
-/* ======= Bygg chips ======= */
-function renderChips(){
-  modeRow.innerHTML = '';
-  modes.forEach(m=>{
-    const div = document.createElement('div');
-    div.className='chip'+(state.mode===m.key?' active':'');
-    div.textContent = m.label;
-    div.onclick=()=>{
-      state.mode=m.key;
-      renderChips();
-      layoutForMode();
-      newTask();
-    };
-    modeRow.appendChild(div);
-  });
+const digitalBox = document.getElementById('digitalBox');
+const digitalLabel = document.getElementById('digitalLabel');
+const centerBtn = document.getElementById('centerBtn');
 
-  levelRow.innerHTML = '';
-  levels.forEach(l=>{
-    const div = document.createElement('div');
-    div.className='chip'+(state.level===l.key?' active':'');
-    div.textContent = l.label;
-    div.onclick=()=>{
-      state.level=l.key;
-      state.step = l.step;
-      renderChips();
-      newTask();
-    };
-    levelRow.appendChild(div);
+const feedback = document.getElementById('feedback');
+const streakEl = document.getElementById('streak');
+const bestEl = document.getElementById('best');
+const correctEl = document.getElementById('correct');
+
+/* ========= UI builders ========= */
+function buildSeg(container, items, getActive, onSelect){
+  container.innerHTML='';
+  items.forEach(it=>{
+    const b=document.createElement('button');
+    b.textContent=it.label;
+    if(getActive()===it.key) b.classList.add('active');
+    b.onclick=()=>{ onSelect(it); };
+    container.appendChild(b);
   });
 }
-renderChips();
 
-/* ======= Layout per läge ======= */
-function layoutForMode(){
+function renderControls(){
+  buildSeg(modeRow, modes, ()=>state.mode, (it)=>{
+    state.mode=it.key; layout(); newTask();
+  });
+  buildSeg(levelRow, levels, ()=>state.level, (it)=>{
+    state.level=it.key; state.step=it.step; newTask();
+  });
+  compBtn.setAttribute('aria-pressed', state.comp?'true':'false');
+  compBtn.classList.toggle('active', state.comp);
+  compBtn.textContent = state.comp ? 'Tävlingsläge: PÅ' : 'Tävlingsläge';
+  bestEl.textContent = state.best;
+}
+renderControls();
+
+/* ========= Layout ========= */
+function layout(){
   if(state.mode==='skriv'){
-    // visa analog klocka → skriv digital tid
-    inputBox.style.display = 'flex';
-    digitalBox.style.display = 'none';
-    timeInput.value='';
-    feedback.className='msg muted';
-    feedback.textContent='Läs av klockan och skriv tiden (24h, HH:MM).';
+    inputBox.style.display='flex'; digitalBox.style.display='none';
+    feedback.className='msg muted'; feedback.textContent='Skriv HH:MM';
   } else if(state.mode==='stall'){
-    // visa digital tid → ställ visarna
-    inputBox.style.display = 'none';
-    digitalBox.style.display = 'flex';
-    feedback.className='msg muted';
-    feedback.textContent='Dra i visarna så att de matchar den digitala tiden.';
+    inputBox.style.display='none'; digitalBox.style.display='flex';
+    feedback.className='msg muted'; feedback.textContent='Ställ visarna';
   } else {
-    // mix: slumpa vilket delmoment
-    // (styrs i newTask)
+    // mix avgörs i newTask
   }
 }
 
-/* ======= Slumpa uppgift ======= */
+/* ========= Helpers ========= */
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 
 function generateTime(step){
-  const minutesPool = [];
-  if(step===30){ [0,30].forEach(m=>minutesPool.push(m)); }
-  else if(step===5){ for(let m=0;m<60;m+=5) minutesPool.push(m); }
-  else { for(let m=0;m<60;m++) minutesPool.push(m); }
-  const m = minutesPool[randInt(0, minutesPool.length-1)];
-  const h24 = randInt(0,23);
-  return {h24, m};
+  const mins=[];
+  if(step===30){ mins.push(0,30); }
+  else if(step===5){ for(let m=0;m<60;m+=5) mins.push(m); }
+  else { for(let m=0;m<60;m++) mins.push(m); }
+  return { h24: randInt(0,23), m: mins[randInt(0, mins.length-1)] };
+}
+function toHHMM(h24,m){ return `${String(h24).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
+function hour24eq12(h24,h12){ return (h24%12) === (h12%12); }
+function clampMinuteToStep(minute, step){
+  if(step===1) return ((minute%60)+60)%60;
+  const snap = Math.round(minute/step)*step;
+  return ((snap%60)+60)%60;
 }
 
+/* ========= New Task ========= */
 function newTask(){
-  // om mix: 50/50 mellan skriv/ställ
-  let mode = state.mode;
-  if(mode==='mix'){
-    mode = (Math.random()<0.5)?'skriv':'stall';
-  }
+  let effective = state.mode;
+  if(effective==='mix'){ effective = (Math.random()<0.5)?'skriv':'stall'; }
 
-  ({h24: state.targetH24, m: state.targetM} = generateTime(state.step));
+  const t = generateTime(state.step);
+  state.targetH24 = t.h24; state.targetM = t.m;
 
-  // startläge för användarens visare: centrera på 12:00
-  state.userH12 = 12;
-  state.userM = 0;
+  // reset hand position
+  state.userH12=12; state.userM=0; state.lastMinuteRaw=0;
 
-  // uppdatera UI
-  if(mode==='skriv'){
-    inputBox.style.display = 'flex';
-    digitalBox.style.display = 'none';
-    timeInput.value='';
-    feedback.className='msg muted';
-    feedback.textContent='Läs av klockan och skriv tiden (24h, HH:MM).';
-  } else {
-    inputBox.style.display = 'none';
-    digitalBox.style.display = 'flex';
+  if(effective==='skriv'){
+    inputBox.style.display='flex'; digitalBox.style.display='none';
+    timeInput.value=''; feedback.className='msg muted'; feedback.textContent='Skriv HH:MM';
+  }else{
+    inputBox.style.display='none'; digitalBox.style.display='flex';
     digitalLabel.textContent = toHHMM(state.targetH24, state.targetM);
-    feedback.className='msg muted';
-    feedback.textContent='Ställ visarna till den digitala tiden.';
+    feedback.className='msg muted'; feedback.textContent='Ställ visarna';
   }
-
   draw();
 }
 
-/* ======= Format & jämförelse ======= */
-function toHHMM(h24, m){
-  const h = String(h24).padStart(2,'0');
-  const mm = String(m).padStart(2,'0');
-  return `${h}:${mm}`;
-}
-function clampMinuteToStep(minute, step){
-  if(step===1) return minute;
-  const snap = Math.round(minute/step)*step;
-  return (snap+60)%60;
-}
-function hour24eq12(h24, h12){
-  // matcha 24h mot 12h (12 == 0 mod 12)
-  const a = h24 % 12;
-  const b = h12 % 12;
-  return a===b;
-}
-
-/* ======= Rita klockan ======= */
+/* ========= Drawing ========= */
 function draw(){
-  const w = clock.width, h = clock.height;
-  const cx = w/2, cy = h/2;
-  const R = Math.min(w,h)*0.45;
+  const w=clock.width, h=clock.height, cx=w/2, cy=h/2;
+  const R = Math.min(w,h)*0.44;
 
   ctx.clearRect(0,0,w,h);
 
-  // urtavla
-  ctx.beginPath();
-  ctx.arc(cx,cy,R,0,Math.PI*2);
-  ctx.fillStyle="#fff";
-  ctx.fill();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = "#e5e7eb";
-  ctx.stroke();
+  // skiva
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.fillStyle="#ffffff"; ctx.fill();
+  ctx.lineWidth=8; ctx.strokeStyle="#e2e8f0"; ctx.stroke();
 
-  // markeringar (tim & 5-min)
+  // 5-min markeringar
   for(let i=0;i<60;i++){
     const ang = (Math.PI*2)*i/60 - Math.PI/2;
-    const r1 = R-8;
-    const r2 = (i%5===0)? R-22 : R-14;
+    const r1=R-10, r2= i%5===0? R-28 : R-18;
     ctx.beginPath();
-    ctx.moveTo(cx + r1*Math.cos(ang), cy + r1*Math.sin(ang));
-    ctx.lineTo(cx + r2*Math.cos(ang), cy + r2*Math.sin(ang));
-    ctx.lineWidth = (i%5===0)? 4 : 2;
-    ctx.strokeStyle = (i%5===0)? "#94a3b8" : "#cbd5e1";
+    ctx.moveTo(cx+r1*Math.cos(ang), cy+r1*Math.sin(ang));
+    ctx.lineTo(cx+r2*Math.cos(ang), cy+r2*Math.sin(ang));
+    ctx.lineWidth = i%5===0? 4:2;
+    ctx.strokeStyle = i%5===0? "#94a3b8" : "#cbd5e1";
     ctx.stroke();
   }
 
-  // siffror
-  ctx.fillStyle = "#111827";
-  ctx.font = `${R*0.16}px Inter, ui-sans-serif, system-ui`;
-  ctx.textAlign="center"; ctx.textBaseline="middle";
+  // siffror 1..12
+  ctx.fillStyle="#0f172a";
+  ctx.font=`${R*0.17}px Inter, ui-sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
   for(let hr=1; hr<=12; hr++){
-    const ang = (Math.PI*2)*hr/12 - Math.PI/2;
-    const rr = R-40;
-    ctx.fillText(String(hr), cx + rr*Math.cos(ang), cy + rr*Math.sin(ang));
+    const ang=(Math.PI*2)*hr/12 - Math.PI/2, rr=R-44;
+    ctx.fillText(String(hr), cx+rr*Math.cos(ang), cy+rr*Math.sin(ang));
   }
 
-  // bestäm visare att rita:
-  let showH12, showM;
-  if(state.mode==='skriv'){
-    // visa mål (analog → skriv digital)
-    const h12 = ((state.targetH24 % 12) || 12);
-    showH12 = h12; showM = state.targetM;
-  } else if (state.mode==='stall'){
-    // visa användarens visare
-    showH12 = state.userH12; showM = state.userM;
+  // vilka visare visas?
+  let h12, mm;
+  if(state.mode==='skriv' && inputBox.style.display==='flex'){
+    h12 = ((state.targetH24%12)||12);
+    mm = state.targetM;
+  } else if(state.mode==='stall' && digitalBox.style.display==='flex'){
+    h12 = state.userH12; mm = state.userM;
   } else {
-    // i mix styrs av vilken deluppgift vi startade
-    // bestäm via vilka boxar som syns
-    if (inputBox.style.display==='flex'){
-      const h12 = ((state.targetH24 % 12) || 12);
-      showH12 = h12; showM = state.targetM;
-    } else {
-      showH12 = state.userH12; showM = state.userM;
-    }
+    // mix – styrs av synlig box
+    if(inputBox.style.display==='flex'){ h12=((state.targetH24%12)||12); mm=state.targetM; }
+    else { h12=state.userH12; mm=state.userM; }
   }
 
-  // beräkna vinklar
-  const minuteAngle = Math.PI*2*(showM/60) - Math.PI/2;
-  // timvisare tar hänsyn till minuter
-  const hourAngle = Math.PI*2*((showH12%12)/12 + showM/60/12) - Math.PI/2;
+  // vinklar
+  const angMin = Math.PI*2*(mm/60) - Math.PI/2;
+  const angHour= Math.PI*2*((h12%12)/12 + mm/60/12) - Math.PI/2;
 
-  // timvisare
-  drawHand(cx,cy, hourAngle, R*0.5, 8, "#111827");
-  // minutvisare
-  drawHand(cx,cy, minuteAngle, R*0.72, 6, "#111827");
+  // visare – med stora "drag-noder" i spetsen för enkelhet
+  drawHand(cx,cy, angHour, R*0.5, 10, "#0f172a", true);
+  drawHand(cx,cy, angMin,  R*0.74, 7,  "#0f172a", true);
 
-  // centrumknapp
-  ctx.beginPath();
-  ctx.arc(cx,cy,8,0,Math.PI*2);
-  ctx.fillStyle="#111827";
-  ctx.fill();
+  // centrum
+  ctx.beginPath(); ctx.arc(cx,cy,9,0,Math.PI*2); ctx.fillStyle="#0f172a"; ctx.fill();
 }
-function drawHand(cx,cy, angle, length, width, color){
-  const x = cx + length*Math.cos(angle);
-  const y = cy + length*Math.sin(angle);
-  ctx.beginPath();
-  ctx.lineCap = "round";
-  ctx.moveTo(cx,cy);
-  ctx.lineTo(x,y);
-  ctx.lineWidth = width;
-  ctx.strokeStyle = color;
-  ctx.stroke();
+function drawHand(cx,cy, angle, length, width, color, tip){
+  ctx.beginPath(); ctx.lineCap="round";
+  ctx.moveTo(cx,cy); ctx.lineTo(cx+length*Math.cos(angle), cy+length*Math.sin(angle));
+  ctx.lineWidth=width; ctx.strokeStyle=color; ctx.stroke();
+
+  if(tip){
+    const tx=cx+length*Math.cos(angle), ty=cy+length*Math.sin(angle);
+    ctx.beginPath(); ctx.arc(tx,ty,12,0,Math.PI*2);
+    ctx.fillStyle="#0f172a"; ctx.fill();
+    ctx.beginPath(); ctx.arc(tx,ty,6,0,Math.PI*2);
+    ctx.fillStyle="#fff"; ctx.fill();
+  }
 }
 
-/* ======= Pekinteraktion för visare ======= */
+/* ========= Pointer drag (båda visare, runt runt) ========= */
 function getPointerPos(evt){
-  const rect = clock.getBoundingClientRect();
+  const rect=clock.getBoundingClientRect();
   const isTouch = evt.touches && evt.touches.length;
-  const clientX = isTouch ? evt.touches[0].clientX : evt.clientX;
-  const clientY = isTouch ? evt.touches[0].clientY : evt.clientY;
-  const x = (clientX - rect.left) * (clock.width/rect.width);
-  const y = (clientY - rect.top) * (clock.height/rect.height);
-  return {x,y};
+  const x=(isTouch?evt.touches[0].clientX:evt.clientX)-rect.left;
+  const y=(isTouch?evt.touches[0].clientY:evt.clientY)-rect.top;
+  // skala till canvas pixels
+  return { x: x*(clock.width/rect.width), y: y*(clock.height/rect.height) };
 }
 function angleFromCenter(x,y){
-  const cx = clock.width/2, cy = clock.height/2;
-  return Math.atan2(y-cy, x-cx); // -PI..PI, 0 = +x (höger)
+  const cx=clock.width/2, cy=clock.height/2;
+  return Math.atan2(y-cy, x-cx); // -PI..PI
 }
-function dist(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.hypot(dx,dy); }
+function dist(ax,ay,bx,by){ return Math.hypot(ax-bx, ay-by); }
 
 function whichHandNear(pos){
-  // avgör vilken hand man tog tag i, baserat på närmast spets
-  const cx = clock.width/2, cy = clock.height/2;
-  // nuvarande handpositioner (vi använder userH12/userM när vi ställer visare)
-  const m = state.userM;
-  const h12 = state.userH12;
-  const R = Math.min(clock.width, clock.height)*0.45;
+  // välj närmaste spets (stora drag-noder gör det lätt)
+  const cx=clock.width/2, cy=clock.height/2;
+  const R = Math.min(clock.width,clock.height)*0.44;
+  const mAng = Math.PI*2*(state.userM/60) - Math.PI/2;
+  const hAng = Math.PI*2*((state.userH12%12)/12 + state.userM/60/12) - Math.PI/2;
 
-  const minuteAngle = Math.PI*2*(m/60) - Math.PI/2;
-  const hourAngle = Math.PI*2*((h12%12)/12 + m/60/12) - Math.PI/2;
+  const mPt={x: cx+(R*0.74)*Math.cos(mAng), y: cy+(R*0.74)*Math.sin(mAng)};
+  const hPt={x: cx+(R*0.50)*Math.cos(hAng), y: cy+(R*0.50)*Math.sin(hAng)};
 
-  const minPt = {x: cx + (R*0.72)*Math.cos(minuteAngle), y: cy + (R*0.72)*Math.sin(minuteAngle)};
-  const hourPt= {x: cx + (R*0.5)*Math.cos(hourAngle),   y: cy + (R*0.5)*Math.sin(hourAngle)};
-
-  const dm = dist(pos.x,pos.y, minPt.x,minPt.y);
-  const dh = dist(pos.x,pos.y, hourPt.x,hourPt.y);
-  return (dm<dh) ? 'min' : 'hour';
+  const dm=dist(pos.x,pos.y,mPt.x,mPt.y);
+  const dh=dist(pos.x,pos.y,hPt.x,hPt.y);
+  return dm<dh ? 'min' : 'hour';
 }
 
 function onPointerDown(evt){
-  // bara relevant när vi ställer visarna
-  const activeIsSetHands = (state.mode==='stall') || (state.mode==='mix' && digitalBox.style.display==='flex');
-  if(!activeIsSetHands) return;
-
-  const pos = getPointerPos(evt);
-  state.dragging = whichHandNear(pos);
-  onPointerMove(evt); // direkt uppdatering
+  // Dra bara när vi "ställer" visare (inkl. mix-del som visar digital)
+  const active = (state.mode==='stall') || (state.mode==='mix' && digitalBox.style.display==='flex');
+  if(!active) return;
+  const p=getPointerPos(evt);
+  state.dragging = whichHandNear(p);
+  // init minute raw för smidig wrap
+  state.lastMinuteRaw = state.userM;
+  onPointerMove(evt);
 }
 function onPointerMove(evt){
   if(!state.dragging) return;
   evt.preventDefault();
-
-  const pos = getPointerPos(evt);
-  const ang = angleFromCenter(pos.x, pos.y); // -PI..PI, 0=+x
-  // konvertera till minuter/timmar
+  const p=getPointerPos(evt);
+  const ang = angleFromCenter(p.x,p.y); // -PI..PI
   let deg = (ang + Math.PI/2) * 180/Math.PI; // 0 uppe, medurs
   if(deg<0) deg += 360;
 
   if(state.dragging==='min'){
-    let minute = Math.round(deg/6); // 360/60 = 6°/min
-    minute = minute % 60;
-    minute = clampMinuteToStep(minute, state.step);
-    state.userM = minute;
+    // rå minut (0..59 kontinuerligt), tillåt “varv” genom smidig snap
+    let rawMin = Math.round(deg/6); // 6°/min
+    // snap till nivå
+    rawMin = clampMinuteToStep(rawMin, state.step);
+    state.userM = rawMin;
+    // timvisaren följer mjukt minuterna genom formeln i draw()
   } else {
-    // timme per 30°, 12 steg
-    let rawHour = Math.round(deg/30); // 0..12
-    rawHour = rawHour % 12;
-    state.userH12 = (rawHour===0)?12:rawHour;
+    // timme i 12 steg (drag runt runt)
+    let rawHour = Math.round(deg/30) % 12; // 30°/tim
+    state.userH12 = rawHour===0?12:rawHour;
   }
   draw();
 }
@@ -478,102 +404,75 @@ function onPointerUp(){ state.dragging=null; }
 clock.addEventListener('mousedown', onPointerDown);
 clock.addEventListener('mousemove', onPointerMove);
 window.addEventListener('mouseup', onPointerUp);
-
 clock.addEventListener('touchstart', onPointerDown, {passive:false});
 clock.addEventListener('touchmove', onPointerMove, {passive:false});
 clock.addEventListener('touchend', onPointerUp);
 
-/* ======= Kontrollknappar ======= */
-compToggle.onchange = ()=>{
-  state.comp = compToggle.checked;
-  feedback.className='msg muted';
-  feedback.textContent = state.comp ? 'Tävlingsläge på – hur lång streak klarar du?' : 'Tävlingsläge av.';
-  if(state.comp){
-    state.streak = 0;
-    updateStats();
-  }
-  newTask();
-};
-newBtn.onclick = ()=>{ newTask(); };
-checkBtn.onclick = ()=> checkAnswer();
-centerBtn.onclick = ()=>{
-  // centrera (12:00) för att börja om när man ställer visarna
-  state.userH12 = 12; state.userM = 0; draw();
-};
-clearBtn.onclick = ()=>{ timeInput.value=''; timeInput.focus(); };
+/* ========= Check/feedback ========= */
+function showOk(t){ feedback.className='msg ok'; feedback.textContent=t; }
+function showErr(t){ feedback.className='msg err'; feedback.textContent=t; }
+function neutral(t){ feedback.className='msg muted'; feedback.textContent=t; }
 
-/* ======= Svarslogik ======= */
 function checkAnswer(){
   const activeMode = (state.mode==='mix')
     ? (inputBox.style.display==='flex' ? 'skriv' : 'stall')
     : state.mode;
 
-  let ok = false;
+  let ok=false;
   if(activeMode==='skriv'){
-    // användaren skriver 24h (HH:MM) för analog mål
-    const raw = (timeInput.value||'').trim();
-    const match = raw.match(/^(\d{1,2})\s*[:.]\s*(\d{2})$/);
-    if(!match){ showErr('Skriv tiden som HH:MM, t.ex. 07:30'); return; }
-    let hh = Number(match[1]), mm = Number(match[2]);
-    if(!(hh>=0 && hh<=23 && mm>=0 && mm<=59)){ showErr('Ogiltig tid. Använd 00–23 för timmar.'); return; }
-
-    // jämför mot target (med nivåbegränsning)
-    const step = state.step;
-    const mmSnap = (step===1)?mm: clampMinuteToStep(mm, step);
-    if(mm !== mmSnap){ showErr(`På denna nivå används ${step===30?':00 eller :30': step===5?'5-min':'minutprecision'}.`); return; }
-
+    const raw=(timeInput.value||'').trim();
+    const m=raw.match(/^(\d{1,2})\s*[:.]\s*(\d{2})$/);
+    if(!m){ showErr('HH:MM'); return; }
+    const hh=+m[1], mm=+m[2];
+    if(hh<0||hh>23||mm<0||mm>59){ showErr('Ogiltig tid'); return; }
+    if(clampMinuteToStep(mm,state.step)!==mm){ showErr('Fel intervall'); return; }
     ok = (hh===state.targetH24 && mm===state.targetM);
   } else {
-    // ställer visare (12h) för given 24h digital
-    const sameHour = hour24eq12(state.targetH24, state.userH12);
-    const sameMin = state.userM===state.targetM;
-    ok = (sameHour && sameMin);
+    ok = (hour24eq12(state.targetH24, state.userH12) && state.userM===state.targetM);
   }
 
   if(ok){
-    showOk('Rätt! 🎉');
+    showOk('Rätt!');
     state.correctTotal++;
     if(state.comp){
       state.streak++;
       if(state.streak>state.best){
-        state.best = state.streak;
+        state.best=state.streak;
         localStorage.setItem('klock_best_streak', String(state.best));
       }
+      setTimeout(newTask, 500);
     }
-    updateStats();
-    // ny uppgift direkt i tävlingsläge, annars låt eleven trycka Ny uppgift
-    if(state.comp){ setTimeout(newTask, 600); }
-  }else{
-    showErr('Inte riktigt. Försök igen!');
-    if(state.comp){
-      state.streak = 0;
-      updateStats();
-    }
+  } else {
+    showErr('Försök igen');
+    if(state.comp){ state.streak=0; }
   }
+  updateStats();
 }
 function updateStats(){
-  streakEl.textContent = state.streak;
-  bestEl.textContent = state.best;
-  correctEl.textContent = state.correctTotal;
-}
-function showOk(t){
-  feedback.className = 'msg ok';
-  feedback.textContent = t;
-}
-function showErr(t){
-  feedback.className = 'msg err';
-  feedback.textContent = t;
+  streakEl.textContent=state.streak;
+  bestEl.textContent=state.best;
+  correctEl.textContent=state.correctTotal;
 }
 
-/* ======= Init ======= */
-function firstLayout(){
-  bestEl.textContent = state.best;
-  compToggle.checked = state.comp;
-  layoutForMode();
+/* ========= Controls ========= */
+newBtn.onclick = ()=>{ newTask(); neutral('Ny uppgift'); };
+checkBtn.onclick = ()=> checkAnswer();
+clearBtn.onclick = ()=>{ timeInput.value=''; timeInput.focus(); };
+centerBtn.onclick = ()=>{ state.userH12=12; state.userM=0; draw(); };
+
+compBtn.onclick = ()=>{
+  state.comp = !state.comp;
+  if(state.comp){ state.streak=0; updateStats(); }
+  renderControls();
+  neutral(state.comp?'Tävlingsläge på':'Tävlingsläge av');
   newTask();
-}
-firstLayout();
+};
 
+/* ========= Init ========= */
+function init(){
+  layout(); renderControls(); updateStats(); newTask();
+}
+init();
 </script>
 </body>
 </html>
