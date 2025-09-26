@@ -1,275 +1,275 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-<title>Klockträning</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Klockträning – Vilja & Elma</title>
 <style>
   :root{
     --bg:#f7fafc; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
     --pri:#2563eb; --ok:#16a34a; --err:#ef4444; --ring:rgba(37,99,235,.14);
-    --radius:20px; --shadow:0 10px 30px rgba(2,6,23,.08);
+    --radius:22px; --shadow:0 12px 36px rgba(2,6,23,.08);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; font-family: ui-sans-serif, -apple-system, Segoe UI, Inter, Roboto, Arial;
-    background:linear-gradient(180deg,#f8fafc, #eef2ff 40%, #e2e8f0);
+    margin:0; font-family: ui-sans-serif,-apple-system,Segoe UI,Inter,Roboto,Arial;
+    background:linear-gradient(180deg,#f8fafc,#eef2ff 45%,#e2e8f0);
     color:var(--ink); display:flex; align-items:center; justify-content:center;
   }
-  .app{width:min(960px,100%); padding:16px;}
-  .wrap{
-    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px;
-    display:grid; gap:14px; grid-template-rows:auto 1fr auto;
-    min-height: calc(100vh - 32px);
+  .app{ width:min(980px,100%); padding:16px; }
+  .card{
+    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px;
+    min-height:calc(100vh - 32px); display:grid; grid-template-rows:auto 1fr auto; gap:16px;
   }
-  .topbar{
-    display:flex; align-items:center; gap:10px; justify-content:space-between;
-  }
-  .brand{font-weight:800; letter-spacing:.2px}
-  .chipbar{display:flex; gap:8px; flex-wrap:wrap}
-  .chip{
-    padding:10px 14px; border:1px solid #e2e8f0; border-radius:999px; cursor:pointer; user-select:none; background:#fff;
-    font-weight:600; font-size:.95rem;
-  }
-  .chip.active{ border-color:var(--pri); box-shadow:0 0 0 4px var(--ring); }
-  .stats{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .pill{background:#f1f5f9; padding:8px 12px; border-radius:999px; font-size:.9rem}
+  .top{ display:flex; justify-content:space-between; align-items:center; }
+  .brand{ font-weight:900; letter-spacing:.2px }
+  .stats{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .pill{ background:#f1f5f9; border-radius:999px; padding:8px 12px; font-size:.95rem; }
 
-  .stage{
-    display:grid; grid-template-columns:1fr; gap:14px; place-items:center;
-  }
-  .clock-card{ width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; }
-  canvas{width:min(420px, 90vw); height:min(420px, 90vw); touch-action:none;}
+  /* Startskärm */
+  .center{ display:grid; place-items:center; text-align:center; padding:10px; }
+  .headline{ font-size:1.6rem; font-weight:900; }
+  .big-btns{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
+  .big{ padding:18px 22px; border:none; border-radius:16px; font-weight:900; font-size:1.05rem; cursor:pointer;
+        background:var(--pri); color:#fff; }
+  .big.secondary{ background:#fff; color:var(--ink); border:1px solid #e2e8f0; }
 
-  .inline{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center;
-  }
-  .kbd{
-    padding:14px 16px; border:1px solid #e2e8f0; border-radius:14px; font-size:1.2rem; width:150px; text-align:center;
-    outline:none;
-  }
-  .kbd:focus{ box-shadow:0 0 0 4px var(--ring); border-color:var(--pri);}
-  .btn{padding:14px 16px; border:none; border-radius:14px; font-weight:800; cursor:pointer; background:var(--pri); color:#fff;}
+  /* Svårighetsknappar */
+  .seg{ display:flex; border:1px solid #e2e8f0; border-radius:999px; overflow:hidden; background:#fff; }
+  .seg button{ padding:10px 16px; border:none; background:transparent; cursor:pointer; font-weight:800; }
+  .seg button.active{ background:var(--pri); color:#fff; }
+
+  /* Spelscen */
+  .stage{ display:grid; gap:12px; place-items:center; }
+  .prompt{ font-size:1.2rem; font-weight:900; text-align:center; min-height:1.8em; }
+  .muted{ color:var(--muted); }
+  .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .btn{ padding:14px 16px; border:none; border-radius:14px; font-weight:900; cursor:pointer; background:var(--pri); color:#fff; }
   .btn.ghost{ background:#fff; color:var(--ink); border:1px solid #e2e8f0; }
   .btn.flat{ background:#f1f5f9; color:#0f172a; }
   .btn:active{ transform:translateY(1px); }
 
-  .dock{
-    display:grid; gap:10px;
-  }
-  .bar{
-    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
-  }
-  .seg{
-    display:flex; border:1px solid #e2e8f0; border-radius:999px; overflow:hidden; background:#fff;
-  }
-  .seg button{
-    padding:10px 14px; border:none; background:transparent; cursor:pointer; font-weight:700;
-  }
-  .seg button.active{ background:var(--pri); color:#fff; }
+  canvas{ width:min(520px, 92vw); height:min(520px, 92vw); touch-action:none; }
 
-  .msg{ text-align:center; font-weight:800; min-height:1.6em; }
+  .msg{ text-align:center; font-weight:900; min-height:1.6em; }
   .msg.ok{ color:var(--ok); }
   .msg.err{ color:var(--err); }
-  .muted{ color:var(--muted); }
 
-  @media (min-width: 880px){
-    .wrap{grid-template-rows:auto 1fr auto}
-  }
 </style>
 </head>
 <body>
-  <div class="app">
-    <div class="wrap">
-      <!-- Topp -->
-      <div class="topbar">
-        <div class="brand">⏰ Klockträning</div>
-        <div class="stats">
-          <div class="pill">Streak <span id="streak">0</span></div>
-          <div class="pill">Bästa <span id="best">0</span></div>
-          <div class="pill">Rätt <span id="correct">0</span></div>
-        </div>
-      </div>
+<div class="app">
+  <div class="card">
 
-      <!-- Scen -->
-      <div class="stage">
-        <div class="clock-card">
-          <canvas id="clock" width="600" height="600" aria-label="Analog klocka"></canvas>
-
-          <!-- Digital label (för STÄLL-läget) -->
-          <div id="digitalBox" class="inline" style="display:none;">
-            <div class="muted">Digital (24h)</div>
-            <div id="digitalLabel" style="font-size:1.8rem; font-weight:900;">14:25</div>
-            <button id="centerBtn" class="btn flat">Centrera</button>
-          </div>
-
-          <!-- Textinmatning (för SKRIV-läget) -->
-          <div id="inputBox" class="inline" style="display:none;">
-            <input id="timeInput" class="kbd" inputmode="numeric" placeholder="HH:MM" autocomplete="off" />
-            <button id="clearBtn" class="btn flat">Rensa</button>
-            <button id="checkBtn" class="btn">Kolla</button>
-          </div>
-
-          <div id="feedback" class="msg muted">Redo</div>
-        </div>
-      </div>
-
-      <!-- Docka (kontroller) -->
-      <div class="dock">
-        <div class="bar">
-          <div id="modeRow" class="seg"></div>
-          <div id="levelRow" class="seg"></div>
-        </div>
-        <div class="bar">
-          <button id="newBtn" class="btn ghost">Ny</button>
-          <button id="compBtn" class="btn ghost" aria-pressed="false">Tävlingsläge</button>
-        </div>
+    <!-- Topp -->
+    <div class="top">
+      <div class="brand">⏰ Klockträning</div>
+      <div class="stats">
+        <div class="pill">Streak <span id="streak">0</span></div>
+        <div class="pill">Bästa <span id="best">0</span></div>
       </div>
     </div>
+
+    <!-- Innehåll -->
+    <div id="screenStart" class="center">
+      <div class="headline">Hej Vilja och Elma 👋<br>Träna på klockan!</div>
+      <div style="height:10px"></div>
+      <div class="seg" role="tablist" aria-label="Svårighet">
+        <button id="btnLatt"  class="active" aria-pressed="true">Lätt</button>
+        <button id="btnMedel" aria-pressed="false">Medel</button>
+        <button id="btnSvar"  aria-pressed="false">Svår</button>
+      </div>
+      <div class="big-btns">
+        <button id="goAnalog"  class="big">Analog</button>
+        <button id="goDigital" class="big secondary">Digital</button>
+      </div>
+      <div style="margin-top:12px" class="muted">Välj läge och svårighet för att börja</div>
+    </div>
+
+    <div id="screenGame" class="stage" style="display:none;">
+      <div id="modeLabel" class="muted"></div>
+      <canvas id="clock" width="700" height="700" aria-label="Analog klocka"></canvas>
+      <div id="prompt" class="prompt">Ställ tiden på …</div>
+
+      <div class="controls">
+        <button id="voiceBtn" class="btn flat" title="Lyssna">🔊 Lyssna</button>
+        <button id="checkBtn" class="btn">Kolla</button>
+        <button id="giveUpBtn" class="btn ghost">Ge upp</button>
+        <button id="newBtn" class="btn ghost">Ny</button>
+        <button id="backBtn" class="btn ghost">Tillbaka</button>
+      </div>
+
+      <div id="feedback" class="msg muted">Lycka till!</div>
+    </div>
+
+    <!-- Footer (tomt för minimalism) -->
+    <div></div>
   </div>
+</div>
 
 <script>
-/* ========= State ========= */
-const modes = [
-  {key:'skriv', label:'Skriv'},
-  {key:'stall', label:'Ställ'},
-  {key:'mix',   label:'Mix'}
-];
-const levels = [
-  {key:'latt',  label:'Lätt',  step:30},  // :00, :30
-  {key:'medel', label:'Medel', step:5},   // 5-min
-  {key:'svar',  label:'Svår',  step:1},   // minut
-];
-
-let state = {
-  mode: 'stall',
-  level: 'latt',
-  step: 30,
-
-  comp: false,
-  streak: 0,
-  best: Number(localStorage.getItem('klock_best_streak')||0),
-  correctTotal: 0,
-
-  targetH24: 14,
-  targetM: 30,
-
-  // användarens visare (12h)
-  userH12: 12,
-  userM: 0,
-
-  dragging: null,   // 'min' | 'hour' | null
-  lastMinuteRaw: 0, // för smidig varv-dragning
+/* ====== State ====== */
+const screens = {
+  start: document.getElementById('screenStart'),
+  game:  document.getElementById('screenGame'),
+};
+const streakEl = document.getElementById('streak');
+const bestEl   = document.getElementById('best');
+const modeLabel= document.getElementById('modeLabel');
+const promptEl = document.getElementById('prompt');
+const feedback = document.getElementById('feedback');
+const btns = {
+  latt:  document.getElementById('btnLatt'),
+  medel: document.getElementById('btnMedel'),
+  svar:  document.getElementById('btnSvar'),
+  goAnalog:  document.getElementById('goAnalog'),
+  goDigital: document.getElementById('goDigital'),
+  voice: document.getElementById('voiceBtn'),
+  check: document.getElementById('checkBtn'),
+  giveUp:document.getElementById('giveUpBtn'),
+  new:   document.getElementById('newBtn'),
+  back:  document.getElementById('backBtn'),
 };
 
-/* ========= Elements ========= */
-const modeRow = document.getElementById('modeRow');
-const levelRow = document.getElementById('levelRow');
-
-const compBtn = document.getElementById('compBtn');
-const newBtn = document.getElementById('newBtn');
-
 const clock = document.getElementById('clock');
-const ctx = clock.getContext('2d');
+const ctx   = clock.getContext('2d');
 
-const inputBox = document.getElementById('inputBox');
-const timeInput = document.getElementById('timeInput');
-const clearBtn = document.getElementById('clearBtn');
-const checkBtn = document.getElementById('checkBtn');
+let state = {
+  level: 'latt',        // 'latt' | 'medel' | 'svar'
+  mode:  'analog',      // 'analog' | 'digital'
+  step:  30,            // byts via level
+  streak: 0,
+  best: Number(localStorage.getItem('klock_best_streak')||0),
 
-const digitalBox = document.getElementById('digitalBox');
-const digitalLabel = document.getElementById('digitalLabel');
-const centerBtn = document.getElementById('centerBtn');
+  // target (24h + minute)
+  targetH24: 14, targetM: 30,
+  // user hands (12h + minute)
+  userH12: 12, userM: 0,
+  dragging: null,       // 'min'|'hour'|null
+};
 
-const feedback = document.getElementById('feedback');
-const streakEl = document.getElementById('streak');
-const bestEl = document.getElementById('best');
-const correctEl = document.getElementById('correct');
+bestEl.textContent = state.best;
 
-/* ========= UI builders ========= */
-function buildSeg(container, items, getActive, onSelect){
-  container.innerHTML='';
-  items.forEach(it=>{
-    const b=document.createElement('button');
-    b.textContent=it.label;
-    if(getActive()===it.key) b.classList.add('active');
-    b.onclick=()=>{ onSelect(it); };
-    container.appendChild(b);
-  });
+/* ====== Svårighet ====== */
+function setLevel(lv){
+  state.level = lv;
+  btns.latt.classList.toggle('active', lv==='latt');
+  btns.medel.classList.toggle('active', lv==='medel');
+  btns.svar.classList.toggle('active', lv==='svar');
+  btns.latt.setAttribute('aria-pressed', lv==='latt');
+  btns.medel.setAttribute('aria-pressed', lv==='medel');
+  btns.svar.setAttribute('aria-pressed', lv==='svar');
+
+  state.step = lv==='latt' ? 30 : (lv==='medel' ? 5 : 1);
 }
+btns.latt.onclick = ()=> setLevel('latt');
+btns.medel.onclick= ()=> setLevel('medel');
+btns.svar.onclick = ()=> setLevel('svar');
 
-function renderControls(){
-  buildSeg(modeRow, modes, ()=>state.mode, (it)=>{
-    state.mode=it.key; layout(); newTask();
-  });
-  buildSeg(levelRow, levels, ()=>state.level, (it)=>{
-    state.level=it.key; state.step=it.step; newTask();
-  });
-  compBtn.setAttribute('aria-pressed', state.comp?'true':'false');
-  compBtn.classList.toggle('active', state.comp);
-  compBtn.textContent = state.comp ? 'Tävlingsläge: PÅ' : 'Tävlingsläge';
-  bestEl.textContent = state.best;
+/* ====== Skärmar ====== */
+function showStart(){
+  screens.start.style.display='grid';
+  screens.game.style.display='none';
+  feedback.className='msg muted';
+  feedback.textContent='Lycka till!';
 }
-renderControls();
-
-/* ========= Layout ========= */
-function layout(){
-  if(state.mode==='skriv'){
-    inputBox.style.display='flex'; digitalBox.style.display='none';
-    feedback.className='msg muted'; feedback.textContent='Skriv HH:MM';
-  } else if(state.mode==='stall'){
-    inputBox.style.display='none'; digitalBox.style.display='flex';
-    feedback.className='msg muted'; feedback.textContent='Ställ visarna';
-  } else {
-    // mix avgörs i newTask
-  }
+function showGame(mode){
+  state.mode = mode;
+  screens.start.style.display='none';
+  screens.game.style.display='grid';
+  modeLabel.textContent = mode==='analog' ? 'Analog' : 'Digital';
+  newTask();
 }
+btns.goAnalog.onclick = ()=> showGame('analog');
+btns.goDigital.onclick= ()=> showGame('digital');
+btns.back.onclick     = ()=> showStart();
 
-/* ========= Helpers ========= */
+/* ====== Tidsgenerator ====== */
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
-
 function generateTime(step){
   const mins=[];
-  if(step===30){ mins.push(0,30); }
+  if(step===30){ mins.push(0,30,15,45); }            // lägg även kvartar på lätt
   else if(step===5){ for(let m=0;m<60;m+=5) mins.push(m); }
   else { for(let m=0;m<60;m++) mins.push(m); }
-  return { h24: randInt(0,23), m: mins[randInt(0, mins.length-1)] };
-}
-function toHHMM(h24,m){ return `${String(h24).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
-function hour24eq12(h24,h12){ return (h24%12) === (h12%12); }
-function clampMinuteToStep(minute, step){
-  if(step===1) return ((minute%60)+60)%60;
-  const snap = Math.round(minute/step)*step;
-  return ((snap%60)+60)%60;
+  return {h24: randInt(0,23), m: mins[randInt(0,mins.length-1)]};
 }
 
-/* ========= New Task ========= */
+/* ====== Svenska fraser ====== */
+const numWords = ['tolv','ett','två','tre','fyra','fem','sex','sju','åtta','nio','tio','elva','tolv','ett'];
+function swedishPhrase(h24,m){
+  // svensk praxis: "kvart över sju", "fem i halv åtta", "tio i fem"
+  // vi visar timmar i 12-format
+  const h = ((h24%12)||12);
+  const next = ((h%12)+1); // nästa timme 1..12
+  function hWord(x){ return numWords[x]; }
+
+  if(m===0)   return `${hWord(h)} ${"prick"}`; // “sju prick” (heltimme)
+  if(m===30)  return `halv ${hWord(next)}`;
+  if(m===15)  return `kvart över ${hWord(h)}`;
+  if(m===45)  return `kvart i ${hWord(next)}`;
+  if(m===25)  return `fem i halv ${hWord(next)}`;
+  if(m===35)  return `fem över halv ${hWord(next)}`;
+
+  if(m<30){
+    // 1..29 över
+    if(m===1) return `en minut över ${hWord(h)}`;
+    return `${m} över ${hWord(h)}`;
+  } else {
+    // 31..59 i nästa
+    const to = 60-m;
+    if(to===1) return `en minut i ${hWord(next)}`;
+    return `${to} i ${hWord(next)}`;
+  }
+}
+function phraseForPrompt(){
+  if(state.mode==='analog'){
+    return `Ställ tiden på ${swedishPhrase(state.targetH24, state.targetM)}`;
+  } else {
+    // digital: 24h
+    return `Ställ tiden på ${toHHMM(state.targetH24, state.targetM)}`;
+  }
+}
+
+/* ====== Web Speech (svenska) ====== */
+let voices=[];
+function loadVoices(){
+  voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+}
+if('speechSynthesis' in window){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  // välj svensk röst om möjligt
+  const sv = voices.find(v=> (v.lang||'').toLowerCase().startsWith('sv'));
+  if(sv) u.voice = sv;
+  u.lang = sv ? sv.lang : 'sv-SE';
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
+}
+
+/* ====== Ny uppgift ====== */
 function newTask(){
-  let effective = state.mode;
-  if(effective==='mix'){ effective = (Math.random()<0.5)?'skriv':'stall'; }
-
   const t = generateTime(state.step);
   state.targetH24 = t.h24; state.targetM = t.m;
-
-  // reset hand position
-  state.userH12=12; state.userM=0; state.lastMinuteRaw=0;
-
-  if(effective==='skriv'){
-    inputBox.style.display='flex'; digitalBox.style.display='none';
-    timeInput.value=''; feedback.className='msg muted'; feedback.textContent='Skriv HH:MM';
-  }else{
-    inputBox.style.display='none'; digitalBox.style.display='flex';
-    digitalLabel.textContent = toHHMM(state.targetH24, state.targetM);
-    feedback.className='msg muted'; feedback.textContent='Ställ visarna';
-  }
+  state.userH12 = 12; state.userM = 0;
+  promptEl.textContent = phraseForPrompt();
+  feedback.className='msg muted';
+  feedback.textContent='Lycka till!';
   draw();
 }
 
-/* ========= Drawing ========= */
+/* ====== Format & jämförelse ====== */
+function toHHMM(h24,m){ return `${String(h24).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
+function hour24eq12(h24,h12){ return (h24%12) === (h12%12); }
+
+/* ====== Rita klocka ====== */
 function draw(){
   const w=clock.width, h=clock.height, cx=w/2, cy=h/2;
-  const R = Math.min(w,h)*0.44;
+  const R = Math.min(w,h)*0.45;
 
   ctx.clearRect(0,0,w,h);
 
@@ -278,10 +278,10 @@ function draw(){
   ctx.fillStyle="#ffffff"; ctx.fill();
   ctx.lineWidth=8; ctx.strokeStyle="#e2e8f0"; ctx.stroke();
 
-  // 5-min markeringar
+  // markeringar
   for(let i=0;i<60;i++){
-    const ang = (Math.PI*2)*i/60 - Math.PI/2;
-    const r1=R-10, r2= i%5===0? R-28 : R-18;
+    const ang=(Math.PI*2)*i/60 - Math.PI/2;
+    const r1=R-10, r2=i%5===0? R-28 : R-18;
     ctx.beginPath();
     ctx.moveTo(cx+r1*Math.cos(ang), cy+r1*Math.sin(ang));
     ctx.lineTo(cx+r2*Math.cos(ang), cy+r2*Math.sin(ang));
@@ -290,35 +290,24 @@ function draw(){
     ctx.stroke();
   }
 
-  // siffror 1..12
+  // siffror
   ctx.fillStyle="#0f172a";
-  ctx.font=`${R*0.17}px Inter, ui-sans-serif`;
+  ctx.font=`${R*0.18}px Inter, ui-sans-serif`;
   ctx.textAlign='center'; ctx.textBaseline='middle';
   for(let hr=1; hr<=12; hr++){
     const ang=(Math.PI*2)*hr/12 - Math.PI/2, rr=R-44;
     ctx.fillText(String(hr), cx+rr*Math.cos(ang), cy+rr*Math.sin(ang));
   }
 
-  // vilka visare visas?
-  let h12, mm;
-  if(state.mode==='skriv' && inputBox.style.display==='flex'){
-    h12 = ((state.targetH24%12)||12);
-    mm = state.targetM;
-  } else if(state.mode==='stall' && digitalBox.style.display==='flex'){
-    h12 = state.userH12; mm = state.userM;
-  } else {
-    // mix – styrs av synlig box
-    if(inputBox.style.display==='flex'){ h12=((state.targetH24%12)||12); mm=state.targetM; }
-    else { h12=state.userH12; mm=state.userM; }
-  }
+  // visare (användarens)
+  const mm = state.userM;
+  const h12 = state.userH12;
 
-  // vinklar
   const angMin = Math.PI*2*(mm/60) - Math.PI/2;
   const angHour= Math.PI*2*((h12%12)/12 + mm/60/12) - Math.PI/2;
 
-  // visare – med stora "drag-noder" i spetsen för enkelhet
-  drawHand(cx,cy, angHour, R*0.5, 10, "#0f172a", true);
-  drawHand(cx,cy, angMin,  R*0.74, 7,  "#0f172a", true);
+  drawHand(cx,cy, angHour, R*0.52, 10, "#0f172a", true);
+  drawHand(cx,cy, angMin,  R*0.76, 7,  "#0f172a", true);
 
   // centrum
   ctx.beginPath(); ctx.arc(cx,cy,9,0,Math.PI*2); ctx.fillStyle="#0f172a"; ctx.fill();
@@ -337,13 +326,12 @@ function drawHand(cx,cy, angle, length, width, color, tip){
   }
 }
 
-/* ========= Pointer drag (båda visare, runt runt) ========= */
+/* ====== Drag båda visare, runt runt ====== */
 function getPointerPos(evt){
   const rect=clock.getBoundingClientRect();
   const isTouch = evt.touches && evt.touches.length;
   const x=(isTouch?evt.touches[0].clientX:evt.clientX)-rect.left;
   const y=(isTouch?evt.touches[0].clientY:evt.clientY)-rect.top;
-  // skala till canvas pixels
   return { x: x*(clock.width/rect.width), y: y*(clock.height/rect.height) };
 }
 function angleFromCenter(x,y){
@@ -353,14 +341,14 @@ function angleFromCenter(x,y){
 function dist(ax,ay,bx,by){ return Math.hypot(ax-bx, ay-by); }
 
 function whichHandNear(pos){
-  // välj närmaste spets (stora drag-noder gör det lätt)
   const cx=clock.width/2, cy=clock.height/2;
-  const R = Math.min(clock.width,clock.height)*0.44;
+  const R = Math.min(clock.width,clock.height)*0.45;
+
   const mAng = Math.PI*2*(state.userM/60) - Math.PI/2;
   const hAng = Math.PI*2*((state.userH12%12)/12 + state.userM/60/12) - Math.PI/2;
 
-  const mPt={x: cx+(R*0.74)*Math.cos(mAng), y: cy+(R*0.74)*Math.sin(mAng)};
-  const hPt={x: cx+(R*0.50)*Math.cos(hAng), y: cy+(R*0.50)*Math.sin(hAng)};
+  const mPt={x: cx+(R*0.76)*Math.cos(mAng), y: cy+(R*0.76)*Math.sin(mAng)};
+  const hPt={x: cx+(R*0.52)*Math.cos(hAng), y: cy+(R*0.52)*Math.sin(hAng)};
 
   const dm=dist(pos.x,pos.y,mPt.x,mPt.y);
   const dh=dist(pos.x,pos.y,hPt.x,hPt.y);
@@ -368,13 +356,8 @@ function whichHandNear(pos){
 }
 
 function onPointerDown(evt){
-  // Dra bara när vi "ställer" visare (inkl. mix-del som visar digital)
-  const active = (state.mode==='stall') || (state.mode==='mix' && digitalBox.style.display==='flex');
-  if(!active) return;
   const p=getPointerPos(evt);
   state.dragging = whichHandNear(p);
-  // init minute raw för smidig wrap
-  state.lastMinuteRaw = state.userM;
   onPointerMove(evt);
 }
 function onPointerMove(evt){
@@ -382,19 +365,24 @@ function onPointerMove(evt){
   evt.preventDefault();
   const p=getPointerPos(evt);
   const ang = angleFromCenter(p.x,p.y); // -PI..PI
-  let deg = (ang + Math.PI/2) * 180/Math.PI; // 0 uppe, medurs
+  let deg = (ang + Math.PI/2) * 180/Math.PI; // 0 uppe
   if(deg<0) deg += 360;
 
   if(state.dragging==='min'){
-    // rå minut (0..59 kontinuerligt), tillåt “varv” genom smidig snap
-    let rawMin = Math.round(deg/6); // 6°/min
-    // snap till nivå
-    rawMin = clampMinuteToStep(rawMin, state.step);
-    state.userM = rawMin;
-    // timvisaren följer mjukt minuterna genom formeln i draw()
+    let rawMin = Math.round(deg/6);         // 6°/min
+    // Snäpp till svårighetsnivå
+    if(state.step===1){
+      // minutprecision
+    }else if(state.step===5){
+      rawMin = Math.round(rawMin/5)*5;
+    }else{
+      // lätt: tillåt 0, 15, 30, 45
+      const opts=[0,15,30,45];
+      rawMin = opts.reduce((a,b)=> Math.abs(b-rawMin)<Math.abs(a-rawMin)?b:a, opts[0]);
+    }
+    state.userM = (rawMin+60)%60;
   } else {
-    // timme i 12 steg (drag runt runt)
-    let rawHour = Math.round(deg/30) % 12; // 30°/tim
+    let rawHour = Math.round(deg/30) % 12;  // 30°/tim
     state.userH12 = rawHour===0?12:rawHour;
   }
   draw();
@@ -408,69 +396,45 @@ clock.addEventListener('touchstart', onPointerDown, {passive:false});
 clock.addEventListener('touchmove', onPointerMove, {passive:false});
 clock.addEventListener('touchend', onPointerUp);
 
-/* ========= Check/feedback ========= */
-function showOk(t){ feedback.className='msg ok'; feedback.textContent=t; }
+/* ====== Svar & logik ====== */
+function updateStreakUI(){
+  streakEl.textContent = state.streak;
+  bestEl.textContent   = state.best;
+}
+function showOk(t){ feedback.className='msg ok';  feedback.textContent=t; }
 function showErr(t){ feedback.className='msg err'; feedback.textContent=t; }
 function neutral(t){ feedback.className='msg muted'; feedback.textContent=t; }
 
 function checkAnswer(){
-  const activeMode = (state.mode==='mix')
-    ? (inputBox.style.display==='flex' ? 'skriv' : 'stall')
-    : state.mode;
-
-  let ok=false;
-  if(activeMode==='skriv'){
-    const raw=(timeInput.value||'').trim();
-    const m=raw.match(/^(\d{1,2})\s*[:.]\s*(\d{2})$/);
-    if(!m){ showErr('HH:MM'); return; }
-    const hh=+m[1], mm=+m[2];
-    if(hh<0||hh>23||mm<0||mm>59){ showErr('Ogiltig tid'); return; }
-    if(clampMinuteToStep(mm,state.step)!==mm){ showErr('Fel intervall'); return; }
-    ok = (hh===state.targetH24 && mm===state.targetM);
-  } else {
-    ok = (hour24eq12(state.targetH24, state.userH12) && state.userM===state.targetM);
-  }
-
+  const ok = hour24eq12(state.targetH24, state.userH12) && state.userM===state.targetM;
   if(ok){
-    showOk('Rätt!');
-    state.correctTotal++;
-    if(state.comp){
-      state.streak++;
-      if(state.streak>state.best){
-        state.best=state.streak;
-        localStorage.setItem('klock_best_streak', String(state.best));
-      }
-      setTimeout(newTask, 500);
+    showOk('Rätt! 🎉');
+    state.streak++;
+    if(state.streak>state.best){
+      state.best = state.streak;
+      localStorage.setItem('klock_best_streak', String(state.best));
     }
+    updateStreakUI();
+    setTimeout(newTask, 600);
   } else {
-    showErr('Försök igen');
-    if(state.comp){ state.streak=0; }
+    showErr('Inte riktigt. Försök igen!');
   }
-  updateStats();
-}
-function updateStats(){
-  streakEl.textContent=state.streak;
-  bestEl.textContent=state.best;
-  correctEl.textContent=state.correctTotal;
 }
 
-/* ========= Controls ========= */
-newBtn.onclick = ()=>{ newTask(); neutral('Ny uppgift'); };
-checkBtn.onclick = ()=> checkAnswer();
-clearBtn.onclick = ()=>{ timeInput.value=''; timeInput.focus(); };
-centerBtn.onclick = ()=>{ state.userH12=12; state.userM=0; draw(); };
-
-compBtn.onclick = ()=>{
-  state.comp = !state.comp;
-  if(state.comp){ state.streak=0; updateStats(); }
-  renderControls();
-  neutral(state.comp?'Tävlingsläge på':'Tävlingsläge av');
-  newTask();
+btns.check.onclick = checkAnswer;
+btns.giveUp.onclick= ()=>{
+  showErr(`Rätt var: ${state.mode==='analog' ? swedishPhrase(state.targetH24,state.targetM) : toHHMM(state.targetH24,state.targetM)}`);
+  state.streak = 0; updateStreakUI();
+  setTimeout(newTask, 700);
 };
+btns.new.onclick = ()=>{ newTask(); };
+btns.voice.onclick = ()=>{ speak(promptEl.textContent); };
 
-/* ========= Init ========= */
+/* ====== Init ====== */
 function init(){
-  layout(); renderControls(); updateStats(); newTask();
+  setLevel('latt');
+  updateStreakUI();
+  showStart();
 }
 init();
 </script>
