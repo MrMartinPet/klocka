@@ -1,458 +1,579 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Klockträning – Vilja & Elma</title>
+<meta charset="UTF-8" />
+<title>Change Journey – CDC Board</title>
 <style>
-  :root{
-    --bg:#f7fafc; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
-    --pri:#2563eb; --ok:#16a34a; --err:#ef4444; --ring:rgba(37,99,235,.14);
-    --radius:22px; --shadow:0 12px 36px rgba(2,6,23,.08);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family: ui-sans-serif,-apple-system,Segoe UI,Inter,Roboto,Arial;
-    background:linear-gradient(180deg,#f8fafc,#eef2ff 45%,#e2e8f0);
-    color:var(--ink); display:flex; align-items:center; justify-content:center;
-  }
-  .app{ width:min(980px,100%); padding:16px; }
-  .card{
-    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px;
-    min-height:calc(100vh - 32px); display:grid; grid-template-rows:auto 1fr auto; gap:16px;
-  }
-  .top{ display:flex; justify-content:space-between; align-items:center; }
-  .brand{ font-weight:900; letter-spacing:.2px }
-  .stats{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .pill{ background:#f1f5f9; border-radius:999px; padding:8px 12px; font-size:.95rem; }
+    :root {
+        --blue-header: #c7d7f5;
+        --blue-footer: #c3d2eb;
+        --board-bg: #082446;
+        --cdc-width: 260px;
+    }
 
-  .center{ display:grid; place-items:center; text-align:center; padding:10px; }
-  .headline{ font-size:1.6rem; font-weight:900; }
-  .big-btns{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
-  .big{ padding:18px 22px; border:none; border-radius:16px; font-weight:900; font-size:1.05rem; cursor:pointer;
-        background:var(--pri); color:#fff; }
-  .big.secondary{ background:#fff; color:#0f172a; border:1px solid #e2e8f0; }
+    * {
+        box-sizing: border-box;
+    }
 
-  .seg{ display:flex; border:1px solid #e2e8f0; border-radius:999px; overflow:hidden; background:#fff; }
-  .seg button{ padding:10px 16px; border:none; background:transparent; cursor:pointer; font-weight:800; }
-  .seg button.active{ background:var(--pri); color:#fff; }
+    body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #e7edf8;
+    }
 
-  .stage{ display:grid; gap:12px; place-items:center; }
-  .prompt{ font-size:1.2rem; font-weight:900; text-align:center; min-height:1.8em; }
-  .muted{ color:var(--muted); }
-  .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  .btn{ padding:14px 16px; border:none; border-radius:14px; font-weight:900; cursor:pointer; background:var(--pri); color:#fff; }
-  .btn.ghost{ background:#fff; color:#0f172a; border:1px solid #e2e8f0; }
-  .btn.flat{ background:#f1f5f9; color:#0f172a; }
-  .btn:active{ transform:translateY(1px); }
+    .app {
+        display: flex;
+        height: 100vh;
+    }
 
-  canvas{ width:min(520px, 92vw); height:min(520px, 92vw); touch-action:none; }
+    /* PALETTE (pott med tomma kort) */
 
-  .msg{ text-align:center; font-weight:900; min-height:1.6em; }
-  .msg.ok{ color:var(--ok); }
-  .msg.err{ color:var(--err); }
+    .palette {
+        width: 280px;
+        background: #f4f4f8;
+        padding: 12px;
+        border-right: 1px solid #d0d0dd;
+        overflow-y: auto;
+    }
+
+    .palette h2 {
+        font-size: 16px;
+        margin: 0 0 8px;
+    }
+
+    .palette-section-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin: 12px 0 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #555;
+    }
+
+    .palette-item {
+        margin-bottom: 12px;
+        cursor: grab;
+    }
+
+    .hint {
+        font-size: 11px;
+        color: #666;
+        margin-top: 4px;
+        line-height: 1.3;
+    }
+
+    /* BOARD / TIMELINE */
+
+    .board-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .board-header {
+        padding: 10px 16px;
+        background: linear-gradient(to right, #11284d, #1b3a70);
+        color: white;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .board-header-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .board {
+        flex: 1;
+        background: var(--board-bg);
+        padding: 16px;
+        overflow: auto;
+    }
+
+    .timeline-label {
+        color: #f3f5ff;
+        font-size: 12px;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .timeline {
+        min-height: 260px;
+        border-radius: 10px;
+        border: 2px dashed rgba(255,255,255,0.4);
+        padding: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .timeline.drag-over {
+        border-style: solid;
+        background: radial-gradient(circle at top left,
+            rgba(255,255,255,0.1),
+            rgba(0,0,0,0));
+    }
+
+    /* CDC CARD */
+
+    .cdc-card {
+        width: var(--cdc-width);
+        background: #fdfdfd;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        border-top: 4px solid var(--blue-header);
+        padding-bottom: 4px;
+        font-size: 11px;
+    }
+
+    .cdc-header {
+        background: var(--blue-header);
+        padding: 4px 6px 2px;
+        border-radius: 4px 4px 0 0;
+        display: grid;
+        grid-template-columns: 80px 1fr 32px;
+        column-gap: 4px;
+        align-items: center;
+    }
+
+    .cdc-title {
+        grid-column: 1 / 4;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .cdc-type {
+        background: #148a3a;
+        color: #fff;
+        border-radius: 5px;
+        padding: 10px 4px;
+        font-size: 10px;
+        text-align: center;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .cdc-type[contenteditable="true"],
+    .cdc-content[contenteditable="true"],
+    .cdc-topic[contenteditable="true"],
+    .cdc-benefit[contenteditable="true"],
+    .payoff-label[contenteditable="true"],
+    .arrow-text[contenteditable="true"],
+    .comm-text[contenteditable="true"] {
+        outline: none;
+    }
+
+    .cdc-content {
+        background: #f9fafc;
+        border-radius: 5px;
+        padding: 6px 4px;
+        min-height: 28px;
+        border: 1px dashed #c0cadf;
+        color: #555;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    .cdc-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 9px;
+    }
+
+    .cdc-circle {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #d6403b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2px;
+        background: #fff;
+    }
+
+    .cdc-circle[contenteditable="true"],
+    .cdc-time[contenteditable="true"] {
+        cursor: text;
+    }
+
+    .cdc-time {
+        font-size: 9px;
+    }
+
+    .cdc-body {
+        padding: 6px;
+    }
+
+    .cdc-label {
+        font-size: 9px;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .cdc-topic {
+        min-height: 42px;
+        padding: 4px;
+        border-radius: 2px;
+        background: #ffffff;
+        border: 1px solid #eee;
+        margin-bottom: 4px;
+    }
+
+    .cdc-dashed {
+        border-top: 2px dashed #e04848;
+        margin: 4px 0;
+    }
+
+    .cdc-benefit {
+        min-height: 32px;
+        padding: 4px;
+        border-radius: 2px;
+        background: #ffffff;
+        border: 1px solid #eee;
+        margin-top: 2px;
+    }
+
+    .cdc-footer {
+        background: var(--blue-footer);
+        padding: 4px 6px;
+        border-radius: 0 0 4px 4px;
+        display: grid;
+        grid-template-columns: 1.4fr 1.6fr;
+        column-gap: 2px;
+        align-items: flex-start;
+    }
+
+    .payoff-left,
+    .payoff-right {
+        font-size: 9px;
+    }
+
+    .payoff-left-title {
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .payoff-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .payoff-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        border: 1px solid #666;
+        background: #fff;
+    }
+
+    .payoff-label {
+        flex: 1;
+    }
+
+    .payoff-box {
+        height: 10px;
+        border-radius: 2px;
+        background: #fff;
+        border: 1px solid #9ca9c3;
+        margin-bottom: 2px;
+    }
+
+    /* RED ARROW (kapitel) */
+
+    .arrow-card {
+        width: 180px;
+        height: 60px;
+        background: #d83434;
+        color: #fff;
+        font-weight: 600;
+        font-size: 12px;
+        position: relative;
+        clip-path: polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%);
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+    }
+
+    .arrow-text {
+        width: 80%;
+    }
+
+    /* COMM BLOCK */
+
+    .comm-card {
+        width: 200px;
+        height: 90px;
+        background: #fdfdfd;
+        border: 2px solid #b9bcc5;
+        border-radius: 4px;
+        padding: 4px 6px;
+        font-size: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .comm-header {
+        font-weight: 600;
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+
+    .comm-text {
+        flex: 1;
+        padding: 3px;
+        border: 1px dashed #ccc;
+        background: #ffffff;
+        border-radius: 2px;
+    }
+
+    .comm-meta {
+        text-align: right;
+        font-size: 9px;
+        color: #555;
+    }
+
+    /* GENERAL DRAG STYLING */
+
+    .draggable {
+        cursor: grab;
+    }
+
+    .draggable:active {
+        cursor: grabbing;
+    }
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="card">
+    <!-- Palette -->
+    <aside class="palette">
+        <h2>Templates</h2>
+        <div class="hint">
+            Dra ett kort eller en pil till tidslinjen. All text på korten kan ändras direkt.
+        </div>
 
-    <!-- Topp -->
-    <div class="top">
-      <div class="brand">⏰ Klockträning</div>
-      <div class="stats">
-        <div class="pill">Streak <span id="streak">0</span></div>
-        <div class="pill">Bästa <span id="best">0</span></div>
-      </div>
+        <div class="palette-section-title">CDC card</div>
+        <div class="palette-item palette-prototype" draggable="true" data-template-id="tpl-cdc">
+            <!-- en liten förhandsvisning -->
+            <div class="cdc-card">
+                <div class="cdc-header">
+                    <div class="cdc-title">Change Development</div>
+                    <div class="cdc-type">Coaching</div>
+                    <div class="cdc-content">Content</div>
+                    <div class="cdc-meta">
+                        <div class="cdc-circle">1</div>
+                        <div class="cdc-time">1h</div>
+                    </div>
+                </div>
+                <div class="cdc-body">
+                    <div class="cdc-label">Topic / learning goal</div>
+                    <div class="cdc-topic">Write topic here…</div>
+                    <div class="cdc-dashed"></div>
+                    <div class="cdc-label">benefit</div>
+                    <div class="cdc-benefit"></div>
+                </div>
+                <div class="cdc-footer">
+                    <div class="payoff-left">
+                        <div class="payoff-left-title">Pay off:</div>
+                        <div class="payoff-item">
+                            <div class="payoff-dot"></div><span class="payoff-label">knowledge</span>
+                        </div>
+                        <div class="payoff-item">
+                            <div class="payoff-dot"></div><span class="payoff-label">behavior</span>
+                        </div>
+                        <div class="payoff-item">
+                            <div class="payoff-dot"></div><span class="payoff-label">attitude</span>
+                        </div>
+                    </div>
+                    <div class="payoff-right">
+                        <div>emotions</div>
+                        <div class="payoff-box"></div>
+                        <div>thoughts</div>
+                        <div class="payoff-box"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="palette-section-title">Focus arrow</div>
+        <div class="palette-item palette-prototype" draggable="true" data-template-id="tpl-arrow">
+            <div class="arrow-card">
+                <div class="arrow-text">New chapter</div>
+            </div>
+        </div>
+
+        <div class="palette-section-title">Communication block</div>
+        <div class="palette-item palette-prototype" draggable="true" data-template-id="tpl-comm">
+            <div class="comm-card">
+                <div class="comm-header">Communication block</div>
+                <div class="comm-text">
+                    e.g. Email before training, info to manager…
+                </div>
+                <div class="comm-meta">Before / after CDC</div>
+            </div>
+        </div>
+
+        <div class="hint">
+            Tips: När korten ligger på tidslinjen kan du dra dem för att byta plats.
+        </div>
+    </aside>
+
+    <!-- Board -->
+    <div class="board-wrapper">
+        <div class="board-header">
+            <div class="board-header-title">Change Journey Timeline</div>
+            <div style="font-size:11px;">Dra kort hit från vänster.</div>
+        </div>
+        <div class="board">
+            <div class="timeline-label">Approx. 6 months journey</div>
+            <div class="timeline" id="timeline"></div>
+        </div>
     </div>
-
-    <!-- Startskärm -->
-    <div id="screenStart" class="center">
-      <div class="headline">Hej Vilja och Elma 👋<br>Träna på klockan!</div>
-      <div style="height:10px"></div>
-      <div class="seg" role="tablist" aria-label="Svårighet">
-        <button id="btnLatt"  class="active" aria-pressed="true">Lätt</button>
-        <button id="btnMedel" aria-pressed="false">Medel</button>
-        <button id="btnSvar"  aria-pressed="false">Svår</button>
-      </div>
-      <div class="big-btns">
-        <button id="goAnalog"  class="big">Analog</button>
-        <button id="goDigital" class="big secondary">Digital</button>
-      </div>
-      <div style="margin-top:12px" class="muted">Välj läge och svårighet för att börja</div>
-    </div>
-
-    <!-- Spelskärm -->
-    <div id="screenGame" class="stage" style="display:none;">
-      <div id="modeLabel" class="muted"></div>
-      <canvas id="clock" width="700" height="700" aria-label="Analog klocka"></canvas>
-      <div id="prompt" class="prompt">Ställ tiden på …</div>
-
-      <div class="controls">
-        <button id="voiceBtn" class="btn flat" title="Lyssna">🔊 Lyssna</button>
-        <button id="checkBtn" class="btn">Kolla</button>
-        <button id="giveUpBtn" class="btn ghost">Ge upp</button>
-        <button id="newBtn" class="btn ghost">Ny</button>
-        <button id="backBtn" class="btn ghost">Tillbaka</button>
-      </div>
-
-      <div id="feedback" class="msg muted">Lycka till!</div>
-    </div>
-
-    <div></div>
-  </div>
 </div>
 
+<!-- TEMPLATES (osynliga i UI) -->
+<template id="tpl-cdc">
+    <div class="cdc-card draggable" draggable="true" data-kind="cdc">
+        <div class="cdc-header">
+            <div class="cdc-title">Change Development</div>
+            <div class="cdc-type" contenteditable="true">Coaching</div>
+            <div class="cdc-content" contenteditable="true">Content</div>
+            <div class="cdc-meta">
+                <div class="cdc-circle" contenteditable="true">1</div>
+                <div class="cdc-time" contenteditable="true">1h</div>
+            </div>
+        </div>
+        <div class="cdc-body">
+            <div class="cdc-label">Topic / learning goal</div>
+            <div class="cdc-topic" contenteditable="true">I am able to work with…</div>
+            <div class="cdc-dashed"></div>
+            <div class="cdc-label">benefit</div>
+            <div class="cdc-benefit" contenteditable="true"></div>
+        </div>
+        <div class="cdc-footer">
+            <div class="payoff-left">
+                <div class="payoff-left-title">Pay off:</div>
+                <div class="payoff-item">
+                    <div class="payoff-dot"></div><span class="payoff-label" contenteditable="true">knowledge</span>
+                </div>
+                <div class="payoff-item">
+                    <div class="payoff-dot"></div><span class="payoff-label" contenteditable="true">behavior</span>
+                </div>
+                <div class="payoff-item">
+                    <div class="payoff-dot"></div><span class="payoff-label" contenteditable="true">attitude</span>
+                </div>
+            </div>
+            <div class="payoff-right">
+                <div>emotions</div>
+                <div class="payoff-box"></div>
+                <div>thoughts</div>
+                <div class="payoff-box"></div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="tpl-arrow">
+    <div class="arrow-card draggable" draggable="true" data-kind="arrow">
+        <div class="arrow-text" contenteditable="true">Awareness</div>
+    </div>
+</template>
+
+<template id="tpl-comm">
+    <div class="comm-card draggable" draggable="true" data-kind="comm">
+        <div class="comm-header">Communication block</div>
+        <div class="comm-text" contenteditable="true">
+            Email to teamleader: invite and explain purpose…
+        </div>
+        <div class="comm-meta" contenteditable="true">Before CDC</div>
+    </div>
+</template>
+
 <script>
-/* ====== Audio: uppmuntrande ljud på rätt ====== */
-let audioCtx;
-function pingSuccess(){
-  try{
-    const ctx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-    audioCtx = ctx;
-    const now = ctx.currentTime;
-    const env = ctx.createGain(); env.gain.setValueAtTime(0, now);
-    env.gain.linearRampToValueAtTime(0.9, now+0.02);
-    env.gain.exponentialRampToValueAtTime(0.001, now+0.35);
+(function() {
+    let dragData = null;
 
-    const o1 = ctx.createOscillator(); o1.type='sine'; o1.frequency.setValueAtTime(880, now); // A5
-    const o2 = ctx.createOscillator(); o2.type='sine'; o2.frequency.setValueAtTime(1175, now+0.06); // D6-ish
+    const timeline = document.getElementById('timeline');
 
-    o1.connect(env); o2.connect(env); env.connect(ctx.destination);
-    o1.start(now);   o1.stop(now+0.25);
-    o2.start(now+0.05); o2.stop(now+0.35);
+    // ----- palette dragstart -----
+    document.querySelectorAll('.palette-prototype').forEach(el => {
+        el.addEventListener('dragstart', e => {
+            dragData = {
+                from: 'palette',
+                templateId: el.dataset.templateId
+            };
+            e.dataTransfer.effectAllowed = 'copy';
+        });
+    });
 
-    if('vibrate' in navigator){ navigator.vibrate(25); }
-  }catch(e){}
-}
+    // ----- timeline drag + drop -----
 
-/* ====== Web Speech (svenska) ====== */
-let voices=[];
-function loadVoices(){ voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
-if('speechSynthesis' in window){
-  loadVoices(); window.speechSynthesis.onvoiceschanged = loadVoices;
-}
-function speak(text){
-  if(!('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(text);
-  const sv = voices.find(v=> (v.lang||'').toLowerCase().startsWith('sv'));
-  if(sv) u.voice=sv; u.lang = sv ? sv.lang : 'sv-SE';
-  window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
-}
+    timeline.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        timeline.classList.add('drag-over');
+    });
 
-/* ====== DOM ====== */
-const screens = {
-  start: document.getElementById('screenStart'),
-  game:  document.getElementById('screenGame'),
-};
-const streakEl = document.getElementById('streak');
-const bestEl   = document.getElementById('best');
-const modeLabel= document.getElementById('modeLabel');
-const promptEl = document.getElementById('prompt');
-const feedback = document.getElementById('feedback');
+    timeline.addEventListener('dragleave', e => {
+        if (e.target === timeline) {
+            timeline.classList.remove('drag-over');
+        }
+    });
 
-const btns = {
-  latt:  document.getElementById('btnLatt'),
-  medel: document.getElementById('btnMedel'),
-  svar:  document.getElementById('btnSvar'),
-  goAnalog:  document.getElementById('goAnalog'),
-  goDigital: document.getElementById('goDigital'),
-  voice: document.getElementById('voiceBtn'),
-  check: document.getElementById('checkBtn'),
-  giveUp:document.getElementById('giveUpBtn'),
-  new:   document.getElementById('newBtn'),
-  back:  document.getElementById('backBtn'),
-};
+    timeline.addEventListener('drop', e => {
+        e.preventDefault();
+        timeline.classList.remove('drag-over');
 
-const clock = document.getElementById('clock');
-const ctx   = clock.getContext('2d');
+        if (!dragData) return;
 
-/* ====== State ====== */
-let state = {
-  level: 'latt',             // 'latt' | 'medel' | 'svar'
-  step:  30,                 // 30 (lätt: 0/15/30/45), 5 (medel), 1 (svår)
-  mode:  'analog',           // 'analog' | 'digital'
+        if (dragData.from === 'palette') {
+            const tpl = document.getElementById(dragData.templateId);
+            if (!tpl) return;
+            const node = tpl.content.firstElementChild.cloneNode(true);
+            node.id = createId();
+            addBoardCard(node);
+            timeline.appendChild(node);
+        } else if (dragData.from === 'board') {
+            const el = document.getElementById(dragData.elementId);
+            if (el) {
+                timeline.appendChild(el);
+            }
+        }
 
-  streak: 0,
-  best: Number(localStorage.getItem('klock_best_streak')||0),
+        dragData = null;
+    });
 
-  // Target (24h & min)
-  targetH24: 14, targetM: 30,
-
-  // Drag-läge: vi styr BARA minutvisaren – timvisaren följer automatiskt
-  baseH12: 12,              // starttimme (12h)
-  baseMin: 0,               // startminut
-  userTotalMin: 0,          // ackumulerade minuter från start (kan gå ± oändligt)
-  prevDragMin: 0,           // föregående “snappad” minut vid drag (0..59)
-  draggingMin: false,
-};
-bestEl.textContent = state.best;
-
-/* ====== Svårighet ====== */
-function setLevel(lv){
-  state.level = lv;
-  btns.latt.classList.toggle('active', lv==='latt');
-  btns.medel.classList.toggle('active', lv==='medel');
-  btns.svar.classList.toggle('active', lv==='svar');
-  btns.latt.setAttribute('aria-pressed', lv==='latt');
-  btns.medel.setAttribute('aria-pressed', lv==='medel');
-  btns.svar.setAttribute('aria-pressed', lv==='svar');
-  state.step = lv==='latt' ? 30 : (lv==='medel' ? 5 : 1);
-}
-btns.latt.onclick = ()=> setLevel('latt');
-btns.medel.onclick= ()=> setLevel('medel');
-btns.svar.onclick = ()=> setLevel('svar');
-
-/* ====== Skärmar ====== */
-function showStart(){
-  screens.start.style.display='grid';
-  screens.game.style.display='none';
-  feedback.className='msg muted';
-  feedback.textContent='Lycka till!';
-}
-function showGame(mode){
-  state.mode = mode;
-  screens.start.style.display='none';
-  screens.game.style.display='grid';
-  modeLabel.textContent = mode==='analog' ? 'Analog' : 'Digital';
-  newTask();
-}
-btns.goAnalog.onclick = ()=> showGame('analog');
-btns.goDigital.onclick= ()=> showGame('digital');
-btns.back.onclick     = ()=> showStart();
-
-/* ====== Helpers ====== */
-function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
-function toHHMM(h24,m){ return `${String(h24).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
-function hour24eq12(h24,h12){ return (h24%12) === (h12%12); }
-function snapMinute(minute, step){
-  if(step===1) return ((minute%60)+60)%60;
-  if(step===5) return (Math.round(minute/5)*5+60)%60;
-  // Lätt: 0,15,30,45
-  const opts=[0,15,30,45];
-  let best=opts[0], md=999;
-  for(const v of opts){ const d=Math.abs(v-minute); if(d<md){md=d; best=v;} }
-  return best;
-}
-function circularDelta(curr, prev, mod){
-  // min signed delta in range (-mod/2, +mod/2]
-  let d = (curr - prev) % mod;
-  if(d >  mod/2) d -= mod;
-  if(d <= -mod/2) d += mod;
-  return d;
-}
-
-/* ====== Fras (svenska) ====== */
-const numWords = ['tolv','ett','två','tre','fyra','fem','sex','sju','åtta','nio','tio','elva','tolv','ett'];
-function swedishPhrase(h24,m){
-  const h = ((h24%12)||12);
-  const next = ((h%12)+1);
-  const hWord = (x)=> numWords[x];
-
-  if(m===0)   return `${hWord(h)} prick`;
-  if(m===30)  return `halv ${hWord(next)}`;
-  if(m===15)  return `kvart över ${hWord(h)}`;
-  if(m===45)  return `kvart i ${hWord(next)}`;
-  if(m===25)  return `fem i halv ${hWord(next)}`;
-  if(m===35)  return `fem över halv ${hWord(next)}`;
-  if(m<30){
-    if(m===1) return `en minut över ${hWord(h)}`;
-    return `${m} över ${hWord(h)}`;
-  } else {
-    const to = 60-m;
-    if(to===1) return `en minut i ${hWord(next)}`;
-    return `${to} i ${hWord(next)}`;
-  }
-}
-function phraseForPrompt(){
-  return state.mode==='analog'
-    ? `Ställ tiden på ${swedishPhrase(state.targetH24, state.targetM)}`
-    : `Ställ tiden på ${toHHMM(state.targetH24, state.targetM)}`;
-}
-
-/* ====== Ny uppgift ====== */
-function generateTime(step){
-  const mins=[];
-  if(step===30){ mins.push(0,15,30,45); }
-  else if(step===5){ for(let m=0;m<60;m+=5) mins.push(m); }
-  else { for(let m=0;m<60;m++) mins.push(m); }
-  return {h24: randInt(0,23), m: mins[randInt(0,mins.length-1)]};
-}
-function newTask(){
-  const t = generateTime(state.step);
-  state.targetH24 = t.h24; state.targetM = t.m;
-
-  // startläge: 12:00 och nollställ drag
-  state.baseH12 = 12;
-  state.baseMin = 0;
-  state.userTotalMin = 0;
-  state.prevDragMin = 0;
-
-  promptEl.textContent = phraseForPrompt();
-  feedback.className='msg muted'; feedback.textContent='Lycka till!';
-  draw();
-}
-
-/* ====== Beräkna visare från userTotalMin ====== */
-function currentUserMinute(){ // 0..59
-  const v = (state.baseMin + (state.userTotalMin % 60) + 60) % 60;
-  return Math.round(v); // alltid heltal efter snap
-}
-function currentUserHour12(){ // 1..12
-  const hoursAdd = Math.floor((state.baseMin + state.userTotalMin)/60);
-  let h = (( (state.baseH12-1) + hoursAdd ) % 12);
-  if(h<0) h += 12;
-  return h+1;
-}
-
-/* ====== Rita klockan ====== */
-function draw(){
-  const w=clock.width, h=clock.height, cx=w/2, cy=h/2;
-  const R = Math.min(w,h)*0.45;
-
-  ctx.clearRect(0,0,w,h);
-
-  // tavla
-  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
-  ctx.fillStyle="#ffffff"; ctx.fill();
-  ctx.lineWidth=8; ctx.strokeStyle="#e2e8f0"; ctx.stroke();
-
-  // markeringar
-  for(let i=0;i<60;i++){
-    const ang=(Math.PI*2)*i/60 - Math.PI/2;
-    const r1=R-10, r2=i%5===0? R-28 : R-18;
-    ctx.beginPath();
-    ctx.moveTo(cx+r1*Math.cos(ang), cy+r1*Math.sin(ang));
-    ctx.lineTo(cx+r2*Math.cos(ang), cy+r2*Math.sin(ang));
-    ctx.lineWidth = i%5===0? 4:2;
-    ctx.strokeStyle = i%5===0? "#94a3b8" : "#cbd5e1";
-    ctx.stroke();
-  }
-
-  // siffror
-  ctx.fillStyle="#0f172a";
-  ctx.font=`${R*0.18}px Inter, ui-sans-serif`;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  for(let hr=1; hr<=12; hr++){
-    const ang=(Math.PI*2)*hr/12 - Math.PI/2, rr=R-44;
-    ctx.fillText(String(hr), cx+rr*Math.cos(ang), cy+rr*Math.sin(ang));
-  }
-
-  // användarens visare
-  const mm = currentUserMinute();
-  const h12 = currentUserHour12();
-
-  const angMin = Math.PI*2*(mm/60) - Math.PI/2;
-  const angHour= Math.PI*2*((h12%12)/12 + mm/60/12) - Math.PI/2;
-
-  drawHand(cx,cy, angHour, R*0.52, 10, "#0f172a", true);
-  drawHand(cx,cy, angMin,  R*0.76, 7,  "#0f172a", true);
-
-  // centrum
-  ctx.beginPath(); ctx.arc(cx,cy,9,0,Math.PI*2); ctx.fillStyle="#0f172a"; ctx.fill();
-}
-function drawHand(cx,cy, angle, length, width, color, tip){
-  ctx.beginPath(); ctx.lineCap="round";
-  ctx.moveTo(cx,cy); ctx.lineTo(cx+length*Math.cos(angle), cy+length*Math.sin(angle));
-  ctx.lineWidth=width; ctx.strokeStyle=color; ctx.stroke();
-
-  if(tip){
-    const tx=cx+length*Math.cos(angle), ty=cy+length*Math.sin(angle);
-    ctx.beginPath(); ctx.arc(tx,ty,12,0,Math.PI*2);
-    ctx.fillStyle="#0f172a"; ctx.fill();
-    ctx.beginPath(); ctx.arc(tx,ty,6,0,Math.PI*2);
-    ctx.fillStyle="#fff"; ctx.fill();
-  }
-}
-
-/* ====== Drag (ENDAST minutvisaren, timvisaren följer) ====== */
-function getPointerPos(evt){
-  const rect=clock.getBoundingClientRect();
-  const isTouch = evt.touches && evt.touches.length;
-  const x=(isTouch?evt.touches[0].clientX:evt.clientX)-rect.left;
-  const y=(isTouch?evt.touches[0].clientY:evt.clientY)-rect.top;
-  return { x: x*(clock.width/rect.width), y: y*(clock.height/rect.height) };
-}
-function angleToMinute(pos){
-  const cx=clock.width/2, cy=clock.height/2;
-  const ang = Math.atan2(pos.y-cy, pos.x-cx); // -PI..PI, 0=höger
-  let deg = (ang + Math.PI/2) * 180/Math.PI; // 0 uppe, ökar medurs
-  if(deg<0) deg += 360;
-  const min = Math.round(deg/6); // 6°/min
-  return Math.max(0, Math.min(59, min));
-}
-function onPointerDown(evt){
-  state.draggingMin = true;
-  const p = getPointerPos(evt);
-  const mRaw = angleToMinute(p);
-  state.prevDragMin = snapMinute(mRaw, state.step);
-  evt.preventDefault();
-}
-function onPointerMove(evt){
-  if(!state.draggingMin) return;
-  const p = getPointerPos(evt);
-  const mRaw = angleToMinute(p);
-  const curr = snapMinute(mRaw, state.step);
-  const delta = circularDelta(curr, state.prevDragMin, 60); // kan vara negativ/positiv, wrap-säker
-  state.userTotalMin += delta;          // TIMVISAREN FÖLJER via userTotalMin
-  state.prevDragMin = curr;
-  draw();
-  evt.preventDefault();
-}
-function onPointerUp(){ state.draggingMin=false; }
-
-clock.addEventListener('mousedown', onPointerDown);
-clock.addEventListener('mousemove', onPointerMove);
-window.addEventListener('mouseup', onPointerUp);
-clock.addEventListener('touchstart', onPointerDown, {passive:false});
-clock.addEventListener('touchmove', onPointerMove, {passive:false});
-clock.addEventListener('touchend', onPointerUp);
-
-/* ====== Svar & logik ====== */
-function updateStreakUI(){
-  streakEl.textContent = state.streak;
-  bestEl.textContent   = state.best;
-}
-function showOk(t){ feedback.className='msg ok';  feedback.textContent=t; }
-function showErr(t){ feedback.className='msg err'; feedback.textContent=t; }
-function neutral(t){ feedback.className='msg muted'; feedback.textContent=t; }
-
-function checkAnswer(){
-  const userM  = currentUserMinute();
-  const userH12= currentUserHour12();
-  const ok = (userM===state.targetM) && hour24eq12(state.targetH24, userH12);
-  if(ok){
-    showOk('Rätt! 🎉');
-    pingSuccess(); // 🎵 uppmuntrande ljud
-    state.streak++;
-    if(state.streak>state.best){
-      state.best = state.streak;
-      localStorage.setItem('klock_best_streak', String(state.best));
+    // ----- helper: ge unikt id -----
+    function createId() {
+        return 'card-' + Math.random().toString(36).slice(2);
     }
-    updateStreakUI();
-    setTimeout(newTask, 600);
-  } else {
-    showErr('Inte riktigt. Försök igen!');
-  }
-}
-btns.check.onclick = checkAnswer;
 
-btns.giveUp.onclick= ()=>{
-  showErr(`Rätt var: ${state.mode==='analog' ? swedishPhrase(state.targetH24,state.targetM) : toHHMM(state.targetH24,state.targetM)}`);
-  state.streak = 0; updateStreakUI();
-  setTimeout(newTask, 700);
-};
-btns.new.onclick = ()=>{ newTask(); };
-btns.voice.onclick = ()=>{ speak(promptEl.textContent); };
+    // ----- göra kort på boarden dragbara -----
+    function addBoardCard(node) {
+        node.addEventListener('dragstart', e => {
+            dragData = {
+                from: 'board',
+                elementId: node.id
+            };
+            e.dataTransfer.effectAllowed = 'move';
+        });
+    }
 
-/* ====== Init ====== */
-function init(){
-  setLevel('latt');
-  updateStreakUI();
-  showStart();
-}
-init();
+    // (om du vill kunna börja med några kort direkt på tavlan,
+    // kan du skapa dem här genom att kalla addBoardCard + appendChild.)
+})();
 </script>
 </body>
 </html>
