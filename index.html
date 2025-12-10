@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Change Journey – CDC Board</title>
+<title>Change Journey – CDC Board (Touch)</title>
 <style>
     :root {
         --blue-header: #c7d7f5;
@@ -26,7 +26,7 @@
         height: 100vh;
     }
 
-    /* PALETTE (pott med tomma kort) */
+    /* PALETTE */
 
     .palette {
         width: 280px;
@@ -53,6 +53,7 @@
     .palette-item {
         margin-bottom: 12px;
         cursor: grab;
+        touch-action: none;
     }
 
     .hint {
@@ -118,6 +119,21 @@
             rgba(0,0,0,0));
     }
 
+    /* GENERELLT DRAGGBART */
+
+    .draggable {
+        cursor: grab;
+        touch-action: none; /* viktigt för iPhone */
+    }
+
+    .dragging-ghost {
+        position: fixed;
+        z-index: 9999;
+        pointer-events: none;
+        opacity: 0.85;
+        transform: translate(-50%, -50%);
+    }
+
     /* CDC CARD */
 
     .cdc-card {
@@ -165,7 +181,10 @@
     .cdc-benefit[contenteditable="true"],
     .payoff-label[contenteditable="true"],
     .arrow-text[contenteditable="true"],
-    .comm-text[contenteditable="true"] {
+    .comm-text[contenteditable="true"],
+    .comm-meta[contenteditable="true"],
+    .cdc-circle[contenteditable="true"],
+    .cdc-time[contenteditable="true"] {
         outline: none;
     }
 
@@ -197,11 +216,6 @@
         justify-content: center;
         margin-bottom: 2px;
         background: #fff;
-    }
-
-    .cdc-circle[contenteditable="true"],
-    .cdc-time[contenteditable="true"] {
-        cursor: text;
     }
 
     .cdc-time {
@@ -287,7 +301,7 @@
         margin-bottom: 2px;
     }
 
-    /* RED ARROW (kapitel) */
+    /* RED ARROW */
 
     .arrow-card {
         width: 180px;
@@ -343,16 +357,6 @@
         font-size: 9px;
         color: #555;
     }
-
-    /* GENERAL DRAG STYLING */
-
-    .draggable {
-        cursor: grab;
-    }
-
-    .draggable:active {
-        cursor: grabbing;
-    }
 </style>
 </head>
 <body>
@@ -365,8 +369,7 @@
         </div>
 
         <div class="palette-section-title">CDC card</div>
-        <div class="palette-item palette-prototype" draggable="true" data-template-id="tpl-cdc">
-            <!-- en liten förhandsvisning -->
+        <div class="palette-item" data-template-id="tpl-cdc">
             <div class="cdc-card">
                 <div class="cdc-header">
                     <div class="cdc-title">Change Development</div>
@@ -408,14 +411,14 @@
         </div>
 
         <div class="palette-section-title">Focus arrow</div>
-        <div class="palette-item palette-prototype" draggable="true" data-template-id="tpl-arrow">
+        <div class="palette-item" data-template-id="tpl-arrow">
             <div class="arrow-card">
                 <div class="arrow-text">New chapter</div>
             </div>
         </div>
 
         <div class="palette-section-title">Communication block</div>
-        <div class="palette-item palette-prototype" draggable="true" data-template-id="tpl-comm">
+        <div class="palette-item" data-template-id="tpl-comm">
             <div class="comm-card">
                 <div class="comm-header">Communication block</div>
                 <div class="comm-text">
@@ -443,9 +446,9 @@
     </div>
 </div>
 
-<!-- TEMPLATES (osynliga i UI) -->
+<!-- TEMPLATES (osynliga) -->
 <template id="tpl-cdc">
-    <div class="cdc-card draggable" draggable="true" data-kind="cdc">
+    <div class="cdc-card draggable" data-kind="cdc">
         <div class="cdc-header">
             <div class="cdc-title">Change Development</div>
             <div class="cdc-type" contenteditable="true">Coaching</div>
@@ -486,13 +489,13 @@
 </template>
 
 <template id="tpl-arrow">
-    <div class="arrow-card draggable" draggable="true" data-kind="arrow">
+    <div class="arrow-card draggable" data-kind="arrow">
         <div class="arrow-text" contenteditable="true">Awareness</div>
     </div>
 </template>
 
 <template id="tpl-comm">
-    <div class="comm-card draggable" draggable="true" data-kind="comm">
+    <div class="comm-card draggable" data-kind="comm">
         <div class="comm-header">Communication block</div>
         <div class="comm-text" contenteditable="true">
             Email to teamleader: invite and explain purpose…
@@ -503,76 +506,161 @@
 
 <script>
 (function() {
-    let dragData = null;
-
     const timeline = document.getElementById('timeline');
+    const paletteItems = document.querySelectorAll('.palette-item');
 
-    // ----- palette dragstart -----
-    document.querySelectorAll('.palette-prototype').forEach(el => {
-        el.addEventListener('dragstart', e => {
-            dragData = {
-                from: 'palette',
-                templateId: el.dataset.templateId
-            };
-            e.dataTransfer.effectAllowed = 'copy';
-        });
-    });
+    let dragState = null; // {source: 'palette'|'board', templateId?, element?, ghost?, x, y}
 
-    // ----- timeline drag + drop -----
+    function isInsideContentEditable(target) {
+        return !!target.closest('[contenteditable="true"]');
+    }
 
-    timeline.addEventListener('dragover', e => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        timeline.classList.add('drag-over');
-    });
-
-    timeline.addEventListener('dragleave', e => {
-        if (e.target === timeline) {
-            timeline.classList.remove('drag-over');
-        }
-    });
-
-    timeline.addEventListener('drop', e => {
-        e.preventDefault();
-        timeline.classList.remove('drag-over');
-
-        if (!dragData) return;
-
-        if (dragData.from === 'palette') {
-            const tpl = document.getElementById(dragData.templateId);
-            if (!tpl) return;
-            const node = tpl.content.firstElementChild.cloneNode(true);
-            node.id = createId();
-            addBoardCard(node);
-            timeline.appendChild(node);
-        } else if (dragData.from === 'board') {
-            const el = document.getElementById(dragData.elementId);
-            if (el) {
-                timeline.appendChild(el);
-            }
-        }
-
-        dragData = null;
-    });
-
-    // ----- helper: ge unikt id -----
     function createId() {
         return 'card-' + Math.random().toString(36).slice(2);
     }
 
-    // ----- göra kort på boarden dragbara -----
-    function addBoardCard(node) {
-        node.addEventListener('dragstart', e => {
-            dragData = {
-                from: 'board',
-                elementId: node.id
-            };
-            e.dataTransfer.effectAllowed = 'move';
+    function setupPalette() {
+        paletteItems.forEach(item => {
+            item.addEventListener('pointerdown', e => {
+                if (isInsideContentEditable(e.target)) return;
+                e.preventDefault();
+                startDragFromPalette(item, e);
+            });
         });
     }
 
-    // (om du vill kunna börja med några kort direkt på tavlan,
-    // kan du skapa dem här genom att kalla addBoardCard + appendChild.)
+    function startDragFromPalette(item, e) {
+        dragState = {
+            source: 'palette',
+            templateId: item.dataset.templateId,
+            startX: e.clientX,
+            startY: e.clientY,
+            ghost: null
+        };
+        document.body.setPointerCapture(e.pointerId);
+    }
+
+    function startDragFromBoard(element, e) {
+        dragState = {
+            source: 'board',
+            element: element,
+            startX: e.clientX,
+            startY: e.clientY,
+            ghost: null
+        };
+        document.body.setPointerCapture(e.pointerId);
+    }
+
+    function createGhostFromElement(el, x, y) {
+        const rect = el.getBoundingClientRect();
+        const ghost = el.cloneNode(true);
+        ghost.classList.add('dragging-ghost');
+        ghost.style.width = rect.width + 'px';
+        ghost.style.height = rect.height + 'px';
+        ghost.style.left = x + 'px';
+        ghost.style.top = y + 'px';
+        document.body.appendChild(ghost);
+        return ghost;
+    }
+
+    function onPointerMove(e) {
+        if (!dragState) return;
+
+        const x = e.clientX;
+        const y = e.clientY;
+        dragState.x = x;
+        dragState.y = y;
+
+        if (!dragState.ghost) {
+            let sourceEl;
+            if (dragState.source === 'palette') {
+                sourceEl = dragStateFromPalettePreview(dragState.templateId);
+            } else {
+                sourceEl = dragState.element;
+            }
+            dragState.ghost = createGhostFromElement(sourceEl, x, y);
+        } else {
+            dragState.ghost.style.left = x + 'px';
+            dragState.ghost.style.top = y + 'px';
+        }
+    }
+
+    function dragStateFromPalettePreview(templateId) {
+        const paletteItem = Array.from(paletteItems)
+            .find(p => p.dataset.templateId === templateId);
+        return paletteItem.firstElementChild;
+    }
+
+    function onPointerUp(e) {
+        if (!dragState) return;
+
+        const x = dragState.x ?? e.clientX;
+        const y = dragState.y ?? e.clientY;
+
+        if (dragState.ghost) {
+            dragState.ghost.remove();
+        }
+
+        const rect = timeline.getBoundingClientRect();
+        const inside =
+            x >= rect.left && x <= rect.right &&
+            y >= rect.top && y <= rect.bottom;
+
+        if (inside) {
+            if (dragState.source === 'palette') {
+                const tpl = document.getElementById(dragState.templateId);
+                if (tpl) {
+                    const node = tpl.content.firstElementChild.cloneNode(true);
+                    node.id = createId();
+                    makeBoardDraggable(node);
+                    insertAtPosition(node, x);
+                }
+            } else if (dragState.source === 'board') {
+                insertAtPosition(dragState.element, x);
+            }
+        }
+
+        dragState = null;
+    }
+
+    function insertAtPosition(node, x) {
+        const children = Array.from(timeline.children);
+        if (children.length === 0) {
+            timeline.appendChild(node);
+            return;
+        }
+
+        // hitta plats baserat på x-position
+        let inserted = false;
+        for (let child of children) {
+            const r = child.getBoundingClientRect();
+            const centerX = r.left + r.width / 2;
+            if (x < centerX) {
+                timeline.insertBefore(node, child);
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            timeline.appendChild(node);
+        }
+    }
+
+    function makeBoardDraggable(node) {
+        node.classList.add('draggable');
+        node.addEventListener('pointerdown', e => {
+            if (isInsideContentEditable(e.target)) return;
+            e.preventDefault();
+            startDragFromBoard(node, e);
+        });
+    }
+
+    // global lyssnare
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+
+    // init palette
+    setupPalette();
 })();
 </script>
 </body>
