@@ -122,7 +122,7 @@
 <body>
   <div id="game">
     <canvas id="canvas"></canvas>
-    <div id="hud">Spring genom blodlabyrinten. Ät smådjur för immunitet. Undvik myggan.</div>
+    <div id="hud">Du och myggan spawnar i samma blodrum. Fly, ät smådjur, överlev.</div>
 
     <div id="controls">
       <div class="btnDir" id="btnUp">▲</div>
@@ -171,6 +171,10 @@
     let startTime = performance.now();
     let bestTime = 0;
     let lastSurvival = 0;
+
+    // startpositioner (sätts i buildMaze)
+    let startPlayer = { x: 80, y: 80 };
+    let startMosquito = { x: 300, y: 200 };
 
     function ensureAudio() {
       if (!audioCtx) {
@@ -291,41 +295,55 @@
       walls.push({ x: 0, y: 0, w: thick, h: H });
       walls.push({ x: W - thick, y: 0, w: thick, h: H });
 
-      const innerLeft = thick;
-      const innerTop = thick;
-      const innerWidth = W - thick * 2;
-      const innerHeight = H - thick * 2;
+      // CENTRALT "RUM" där båda spawnar
+      const roomW = W * 0.45;
+      const roomH = H * 0.45;
+      const roomX = (W - roomW) / 2;
+      const roomY = (H - roomH) / 2;
+      const doorW = Math.max(70, roomW * 0.25); // öppning i taket
 
-      const segX = innerWidth / 4;
-      const segY = innerHeight / 4;
+      // toppvägg med dörr i mitten
+      const topLeftW = (roomW - doorW) / 2;
+      const topRightX = roomX + topLeftW + doorW;
+      walls.push({ x: roomX,         y: roomY, w: topLeftW,   h: thick });
+      walls.push({ x: topRightX,     y: roomY, w: topLeftW,   h: thick });
 
-      function addVerticalWallWithGap(col, gapRow, gapHeightCells) {
-        const x = innerLeft + segX * col;
-        const gapY = innerTop + segY * gapRow;
-        const gapH = segY * gapHeightCells;
+      // bottenvägg (helt stängd)
+      walls.push({ x: roomX,         y: roomY + roomH, w: roomW, h: thick });
 
-        walls.push({ x, y: innerTop, w: thick, h: gapY - innerTop });
-        walls.push({ x, y: gapY + gapH, w: thick, h: innerTop + innerHeight - (gapY + gapH) });
+      // sidoväggar (lite lägre för öppning nedåt)
+      const sideGapH = 60;
+      // vänster
+      walls.push({ x: roomX, y: roomY, w: thick, h: (roomH - sideGapH) / 2 });
+      walls.push({ x: roomX, y: roomY + (roomH + sideGapH) / 2, w: thick, h: (roomH - sideGapH) / 2 });
+      // höger
+      walls.push({ x: roomX + roomW, y: roomY, w: thick, h: (roomH - sideGapH) / 2 });
+      walls.push({ x: roomX + roomW, y: roomY + (roomH + sideGapH) / 2, w: thick, h: (roomH - sideGapH) / 2 });
+
+      // NÅGRA FÅ EXTRA VÄGGAR ute i labyrinten (mycket öppet)
+      const midY = H * 0.6;
+      walls.push({ x: W * 0.15, y: midY, w: W * 0.25, h: thick });
+      walls.push({ x: W * 0.6,  y: midY, w: W * 0.25, h: thick });
+
+      const midX = W * 0.3;
+      walls.push({ x: midX, y: H * 0.15, w: thick, h: H * 0.25 });
+      walls.push({ x: W * 0.6, y: H * 0.65, w: thick, h: H * 0.2 });
+
+      // sätt startpositioner i rummet
+      startPlayer.x = roomX + roomW * 0.3;
+      startPlayer.y = roomY + roomH * 0.7;
+      startMosquito.x = roomX + roomW * 0.7;
+      startMosquito.y = roomY + roomH * 0.3;
+
+      // lite initiala blodhögar
+      bloodDrops.length = 0;
+      for (let i = 0; i < 10; i++) {
+        addBlood(
+          roomX + 20 + Math.random() * (roomW - 40),
+          roomY + 20 + Math.random() * (roomH - 40),
+          true
+        );
       }
-
-      function addHorizontalWallWithGap(row, gapCol, gapWidthCells) {
-        const y = innerTop + segY * row;
-        const gapX = innerLeft + segX * gapCol;
-        const gapW = segX * gapWidthCells;
-
-        walls.push({ x: innerLeft, y, w: gapX - innerLeft, h: thick });
-        walls.push({ x: gapX + gapW, y, w: innerLeft + innerWidth - (gapX + gapW), h: thick });
-      }
-
-      // tre vertikala väggar med öppningar
-      addVerticalWallWithGap(1, 1, 1.5);
-      addVerticalWallWithGap(2, 0.5, 1.2);
-      addVerticalWallWithGap(3, 2, 1.4);
-
-      // tre horisontella väggar med öppningar
-      addHorizontalWallWithGap(1, 2, 1.2);
-      addHorizontalWallWithGap(2, 0.6, 1.0);
-      addHorizontalWallWithGap(3, 2.1, 0.9);
     }
 
     function circleRectCollision(cx, cy, cr, rect) {
@@ -426,7 +444,6 @@
     }
 
     function updateAnimals() {
-      const now = performance.now();
       for (const a of animals) {
         if (!a.active) continue;
         const dx = player.x - a.x;
@@ -592,12 +609,7 @@
       ctx.beginPath();
       ctx.strokeStyle = immune ? "#0a0" : "#900";
       ctx.lineWidth = 1.5;
-      if (immune) {
-        // liten sjuk smile
-        ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
-      } else {
-        ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
-      }
+      ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
       ctx.stroke();
 
       // kropp
@@ -743,7 +755,7 @@
       if (gameState === "playing") {
         extra = isImmune()
           ? " – IMMUN! Myggan flyr, passa på."
-          : " – Ät smådjur (råtta, groda, kråka, fladdermus) för några sekunders immunitet.";
+          : " – Ät smådjur för några sekunders immunitet.";
       } else {
         extra = " – Fångad. Tryck Spela igen.";
       }
@@ -819,10 +831,10 @@
     function restart() {
       gameState = "playing";
       msgBox.style.display = "none";
-      player.x = 80;
-      player.y = 80;
-      mosquito.x = W - 80;
-      mosquito.y = H - 80;
+      player.x = startPlayer.x;
+      player.y = startPlayer.y;
+      mosquito.x = startMosquito.x;
+      mosquito.y = startMosquito.y;
       immuneUntil = 0;
       startTime = performance.now();
       spawnAnimalsInitial();
@@ -839,11 +851,11 @@
       canvas.width = W;
       canvas.height = H;
       buildMaze();
-      spawnAnimalsInitial();
+      restart();
     });
 
     buildMaze();
-    spawnAnimalsInitial();
+    restart();
     loop();
   </script>
 </body>
