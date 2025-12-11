@@ -1,667 +1,517 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
-<meta charset="UTF-8" />
-<title>Change Journey – CDC Board (Touch)</title>
-<style>
-    :root {
-        --blue-header: #c7d7f5;
-        --blue-footer: #c3d2eb;
-        --board-bg: #082446;
-        --cdc-width: 260px;
-    }
-
+  <meta charset="UTF-8" />
+  <title>Vilja är bäst!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=no" />
+  <style>
     * {
-        box-sizing: border-box;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    body {
-        margin: 0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #e7edf8;
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #ffddff 0, #111 65%);
+      color: #fff;
     }
 
-    .app {
-        display: flex;
-        height: 100vh;
+    body.shake {
+      animation: shake 0.4s linear;
     }
 
-    /* PALETTE */
-
-    .palette {
-        width: 280px;
-        background: #f4f4f8;
-        padding: 12px;
-        border-right: 1px solid #d0d0dd;
-        overflow-y: auto;
+    body.spin {
+      animation: spin 1s linear;
     }
 
-    .palette h2 {
-        font-size: 16px;
-        margin: 0 0 8px;
+    body.invert {
+      filter: invert(1) hue-rotate(180deg);
     }
 
-    .palette-section-title {
-        font-size: 12px;
-        font-weight: 600;
-        margin: 12px 0 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #555;
+    #game {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
     }
 
-    .palette-item {
-        margin-bottom: 12px;
-        cursor: grab;
-        touch-action: none;
+    #status {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 999px;
+      font-size: 14px;
+      text-align: center;
+      max-width: 90%;
+      z-index: 20;
     }
 
-    .hint {
-        font-size: 11px;
-        color: #666;
-        margin-top: 4px;
-        line-height: 1.3;
+    #viljaButton {
+      position: absolute;
+      padding: 18px 30px;
+      border-radius: 999px;
+      border: none;
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff00ff, #ffea00);
+      color: #111;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s linear, filter 0.1s ease, opacity 0.2s ease;
+      touch-action: none;
+      z-index: 10;
     }
 
-    /* BOARD / TIMELINE */
-
-    .board-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+    #viljaButton.tiny {
+      transform: translate(-50%, -50%) scale(0.6);
     }
 
-    .board-header {
-        padding: 10px 16px;
-        background: linear-gradient(to right, #11284d, #1b3a70);
-        color: white;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+    #viljaButton.huge {
+      transform: translate(-50%, -50%) scale(1.5);
     }
 
-    .board-header-title {
-        font-size: 16px;
-        font-weight: 600;
+    #viljaButton.hiddenBtn {
+      opacity: 0;
+      pointer-events: none;
     }
 
-    .board {
-        flex: 1;
-        background: var(--board-bg);
-        padding: 16px;
-        overflow: auto;
+    #winScreen {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 100;
     }
 
-    .timeline-label {
-        color: #f3f5ff;
-        font-size: 12px;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+    #winScreen.hidden {
+      display: none;
     }
 
-    .timeline {
-        min-height: 260px;
-        border-radius: 10px;
-        border: 2px dashed rgba(255,255,255,0.4);
-        padding: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        gap: 10px;
+    #winScreen h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
     }
 
-    .timeline.drag-over {
-        border-style: solid;
-        background: radial-gradient(circle at top left,
-            rgba(255,255,255,0.1),
-            rgba(0,0,0,0));
+    #winScreen p {
+      margin: 4px 0;
+      font-size: 16px;
     }
 
-    /* GENERELLT DRAGGBART */
-
-    .draggable {
-        cursor: grab;
-        touch-action: none; /* viktigt för iPhone */
+    #winScreen button {
+      margin-top: 18px;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #00ffcc, #00aaff);
+      color: #111;
+      cursor: pointer;
     }
 
-    .dragging-ghost {
-        position: fixed;
-        z-index: 9999;
-        pointer-events: none;
-        opacity: 0.85;
-        transform: translate(-50%, -50%);
+    .tempOverlay {
+      position: absolute;
+      color: #fff;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(0,0,0,0.7);
+      z-index: 30;
+      pointer-events: none;
+      animation: floatUp 1s ease-out forwards;
     }
 
-    /* CDC CARD */
-
-    .cdc-card {
-        width: var(--cdc-width);
-        background: #fdfdfd;
-        border-radius: 4px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        border-top: 4px solid var(--blue-header);
-        padding-bottom: 4px;
-        font-size: 11px;
+    .catOverlay {
+      position: absolute;
+      inset: 10% 5%;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      animation: fadeInOut 1.5s ease-out forwards;
+      pointer-events: none;
+      text-align: center;
+      padding: 10px;
     }
 
-    .cdc-header {
-        background: var(--blue-header);
-        padding: 4px 6px 2px;
-        border-radius: 4px 4px 0 0;
-        display: grid;
-        grid-template-columns: 80px 1fr 32px;
-        column-gap: 4px;
-        align-items: center;
+    .catOverlay span {
+      font-size: 40px;
+      margin-bottom: 8px;
     }
 
-    .cdc-title {
-        grid-column: 1 / 4;
-        text-align: center;
-        font-size: 11px;
-        font-weight: 600;
-        margin-bottom: 4px;
+    .catOverlay p {
+      margin: 0;
+      font-size: 18px;
     }
 
-    .cdc-type {
-        background: #148a3a;
-        color: #fff;
-        border-radius: 5px;
-        padding: 10px 4px;
-        font-size: 10px;
-        text-align: center;
-        text-transform: uppercase;
-        font-weight: 600;
+    .fakeButton {
+      position: absolute;
+      padding: 10px 14px;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.5);
+      font-size: 12px;
+      color: #fff;
+      pointer-events: auto;
+      z-index: 5;
     }
 
-    .cdc-type[contenteditable="true"],
-    .cdc-content[contenteditable="true"],
-    .cdc-topic[contenteditable="true"],
-    .cdc-benefit[contenteditable="true"],
-    .payoff-label[contenteditable="true"],
-    .arrow-text[contenteditable="true"],
-    .comm-text[contenteditable="true"],
-    .comm-meta[contenteditable="true"],
-    .cdc-circle[contenteditable="true"],
-    .cdc-time[contenteditable="true"] {
-        outline: none;
+    .fakeButton:active {
+      transform: scale(0.95);
     }
 
-    .cdc-content {
-        background: #f9fafc;
-        border-radius: 5px;
-        padding: 6px 4px;
-        min-height: 28px;
-        border: 1px dashed #c0cadf;
-        color: #555;
-        font-size: 10px;
-        text-align: center;
+    @keyframes shake {
+      0% { transform: translate(0,0); }
+      20% { transform: translate(-5px, 4px); }
+      40% { transform: translate(4px,-4px); }
+      60% { transform: translate(-4px,-2px); }
+      80% { transform: translate(3px,4px); }
+      100% { transform: translate(0,0); }
     }
 
-    .cdc-meta {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 9px;
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
-    .cdc-circle {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid #d6403b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 2px;
-        background: #fff;
+    @keyframes floatUp {
+      from { opacity: 1; transform: translate(-50%, 0); }
+      to { opacity: 0; transform: translate(-50%, -60px); }
     }
 
-    .cdc-time {
-        font-size: 9px;
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: scale(0.8); }
+      20% { opacity: 1; transform: scale(1); }
+      80% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.9); }
     }
-
-    .cdc-body {
-        padding: 6px;
-    }
-
-    .cdc-label {
-        font-size: 9px;
-        font-weight: 600;
-        margin-bottom: 2px;
-    }
-
-    .cdc-topic {
-        min-height: 42px;
-        padding: 4px;
-        border-radius: 2px;
-        background: #ffffff;
-        border: 1px solid #eee;
-        margin-bottom: 4px;
-    }
-
-    .cdc-dashed {
-        border-top: 2px dashed #e04848;
-        margin: 4px 0;
-    }
-
-    .cdc-benefit {
-        min-height: 32px;
-        padding: 4px;
-        border-radius: 2px;
-        background: #ffffff;
-        border: 1px solid #eee;
-        margin-top: 2px;
-    }
-
-    .cdc-footer {
-        background: var(--blue-footer);
-        padding: 4px 6px;
-        border-radius: 0 0 4px 4px;
-        display: grid;
-        grid-template-columns: 1.4fr 1.6fr;
-        column-gap: 2px;
-        align-items: flex-start;
-    }
-
-    .payoff-left,
-    .payoff-right {
-        font-size: 9px;
-    }
-
-    .payoff-left-title {
-        font-weight: 600;
-        margin-bottom: 2px;
-    }
-
-    .payoff-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .payoff-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        border: 1px solid #666;
-        background: #fff;
-    }
-
-    .payoff-label {
-        flex: 1;
-    }
-
-    .payoff-box {
-        height: 10px;
-        border-radius: 2px;
-        background: #fff;
-        border: 1px solid #9ca9c3;
-        margin-bottom: 2px;
-    }
-
-    /* RED ARROW */
-
-    .arrow-card {
-        width: 180px;
-        height: 60px;
-        background: #d83434;
-        color: #fff;
-        font-weight: 600;
-        font-size: 12px;
-        position: relative;
-        clip-path: polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%);
-        display: flex;
-        align-items: center;
-        padding-left: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-    }
-
-    .arrow-text {
-        width: 80%;
-    }
-
-    /* COMM BLOCK */
-
-    .comm-card {
-        width: 200px;
-        height: 90px;
-        background: #fdfdfd;
-        border: 2px solid #b9bcc5;
-        border-radius: 4px;
-        padding: 4px 6px;
-        font-size: 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-
-    .comm-header {
-        font-weight: 600;
-        font-size: 10px;
-        margin-bottom: 2px;
-    }
-
-    .comm-text {
-        flex: 1;
-        padding: 3px;
-        border: 1px dashed #ccc;
-        background: #ffffff;
-        border-radius: 2px;
-    }
-
-    .comm-meta {
-        text-align: right;
-        font-size: 9px;
-        color: #555;
-    }
-</style>
+  </style>
 </head>
 <body>
-<div class="app">
-    <!-- Palette -->
-    <aside class="palette">
-        <h2>Templates</h2>
-        <div class="hint">
-            Dra ett kort eller en pil till tidslinjen. All text på korten kan ändras direkt.
-        </div>
+  <div id="game">
+    <div id="status">Försök trycka på “Vilja är bäst!”-knappen. Lycka till.</div>
+    <button id="viljaButton">Vilja är bäst!</button>
 
-        <div class="palette-section-title">CDC card</div>
-        <div class="palette-item" data-template-id="tpl-cdc">
-            <div class="cdc-card">
-                <div class="cdc-header">
-                    <div class="cdc-title">Change Development</div>
-                    <div class="cdc-type">Coaching</div>
-                    <div class="cdc-content">Content</div>
-                    <div class="cdc-meta">
-                        <div class="cdc-circle">1</div>
-                        <div class="cdc-time">1h</div>
-                    </div>
-                </div>
-                <div class="cdc-body">
-                    <div class="cdc-label">Topic / learning goal</div>
-                    <div class="cdc-topic">Write topic here…</div>
-                    <div class="cdc-dashed"></div>
-                    <div class="cdc-label">benefit</div>
-                    <div class="cdc-benefit"></div>
-                </div>
-                <div class="cdc-footer">
-                    <div class="payoff-left">
-                        <div class="payoff-left-title">Pay off:</div>
-                        <div class="payoff-item">
-                            <div class="payoff-dot"></div><span class="payoff-label">knowledge</span>
-                        </div>
-                        <div class="payoff-item">
-                            <div class="payoff-dot"></div><span class="payoff-label">behavior</span>
-                        </div>
-                        <div class="payoff-item">
-                            <div class="payoff-dot"></div><span class="payoff-label">attitude</span>
-                        </div>
-                    </div>
-                    <div class="payoff-right">
-                        <div>emotions</div>
-                        <div class="payoff-box"></div>
-                        <div>thoughts</div>
-                        <div class="payoff-box"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="palette-section-title">Focus arrow</div>
-        <div class="palette-item" data-template-id="tpl-arrow">
-            <div class="arrow-card">
-                <div class="arrow-text">New chapter</div>
-            </div>
-        </div>
-
-        <div class="palette-section-title">Communication block</div>
-        <div class="palette-item" data-template-id="tpl-comm">
-            <div class="comm-card">
-                <div class="comm-header">Communication block</div>
-                <div class="comm-text">
-                    e.g. Email before training, info to manager…
-                </div>
-                <div class="comm-meta">Before / after CDC</div>
-            </div>
-        </div>
-
-        <div class="hint">
-            Tips: När korten ligger på tidslinjen kan du dra dem för att byta plats.
-        </div>
-    </aside>
-
-    <!-- Board -->
-    <div class="board-wrapper">
-        <div class="board-header">
-            <div class="board-header-title">Change Journey Timeline</div>
-            <div style="font-size:11px;">Dra kort hit från vänster.</div>
-        </div>
-        <div class="board">
-            <div class="timeline-label">Approx. 6 months journey</div>
-            <div class="timeline" id="timeline"></div>
-        </div>
+    <div id="winScreen" class="hidden">
+      <h1>DU KLARADE DET!</h1>
+      <p>Du tryckte på knappen.</p>
+      <p>Bevis: Du är officiellt lika omöjlig som spelet.</p>
+      <p>Vilja är bäst. Och du nästan.</p>
+      <button id="playAgain">Spela igen</button>
     </div>
-</div>
+  </div>
 
-<!-- TEMPLATES (osynliga) -->
-<template id="tpl-cdc">
-    <div class="cdc-card draggable" data-kind="cdc">
-        <div class="cdc-header">
-            <div class="cdc-title">Change Development</div>
-            <div class="cdc-type" contenteditable="true">Coaching</div>
-            <div class="cdc-content" contenteditable="true">Content</div>
-            <div class="cdc-meta">
-                <div class="cdc-circle" contenteditable="true">1</div>
-                <div class="cdc-time" contenteditable="true">1h</div>
-            </div>
-        </div>
-        <div class="cdc-body">
-            <div class="cdc-label">Topic / learning goal</div>
-            <div class="cdc-topic" contenteditable="true">I am able to work with…</div>
-            <div class="cdc-dashed"></div>
-            <div class="cdc-label">benefit</div>
-            <div class="cdc-benefit" contenteditable="true"></div>
-        </div>
-        <div class="cdc-footer">
-            <div class="payoff-left">
-                <div class="payoff-left-title">Pay off:</div>
-                <div class="payoff-item">
-                    <div class="payoff-dot"></div><span class="payoff-label" contenteditable="true">knowledge</span>
-                </div>
-                <div class="payoff-item">
-                    <div class="payoff-dot"></div><span class="payoff-label" contenteditable="true">behavior</span>
-                </div>
-                <div class="payoff-item">
-                    <div class="payoff-dot"></div><span class="payoff-label" contenteditable="true">attitude</span>
-                </div>
-            </div>
-            <div class="payoff-right">
-                <div>emotions</div>
-                <div class="payoff-box"></div>
-                <div>thoughts</div>
-                <div class="payoff-box"></div>
-            </div>
-        </div>
-    </div>
-</template>
+  <script>
+    const game = document.getElementById("game");
+    const button = document.getElementById("viljaButton");
+    const statusEl = document.getElementById("status");
+    const winScreen = document.getElementById("winScreen");
+    const playAgainBtn = document.getElementById("playAgain");
 
-<template id="tpl-arrow">
-    <div class="arrow-card draggable" data-kind="arrow">
-        <div class="arrow-text" contenteditable="true">Awareness</div>
-    </div>
-</template>
+    let audioCtx = null;
+    let attempts = 0;
+    let allowedClick = false; // släpper igenom ibland
+    let fakeButtons = [];
 
-<template id="tpl-comm">
-    <div class="comm-card draggable" data-kind="comm">
-        <div class="comm-header">Communication block</div>
-        <div class="comm-text" contenteditable="true">
-            Email to teamleader: invite and explain purpose…
-        </div>
-        <div class="comm-meta" contenteditable="true">Before CDC</div>
-    </div>
-</template>
-
-<script>
-(function() {
-    const timeline = document.getElementById('timeline');
-    const paletteItems = document.querySelectorAll('.palette-item');
-
-    let dragState = null; // {source: 'palette'|'board', templateId?, element?, ghost?, x, y}
-
-    function isInsideContentEditable(target) {
-        return !!target.closest('[contenteditable="true"]');
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) {
+          audioCtx = new AC();
+        }
+      }
     }
 
-    function createId() {
-        return 'card-' + Math.random().toString(36).slice(2);
+    function playWeirdBeep(type = "random") {
+      ensureAudio();
+      if (!audioCtx) return;
+      const ctx = audioCtx;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      let freq;
+      switch (type) {
+        case "fail":
+          freq = 120 + Math.random() * 80;
+          break;
+        case "cat":
+          freq = 400 + Math.random() * 200;
+          break;
+        case "teleport":
+          freq = 700 + Math.random() * 600;
+          break;
+        case "win":
+          freq = 500;
+          break;
+        default:
+          freq = 150 + Math.random() * 900;
+      }
+
+      osc.frequency.value = freq;
+      osc.type = ["sine", "square", "sawtooth", "triangle"][Math.floor(Math.random() * 4)];
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25 + Math.random() * 0.1);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.3);
     }
 
-    function setupPalette() {
-        paletteItems.forEach(item => {
-            item.addEventListener('pointerdown', e => {
-                if (isInsideContentEditable(e.target)) return;
-                e.preventDefault();
-                startDragFromPalette(item, e);
-            });
-        });
+    function placeButtonRandom() {
+      const rect = game.getBoundingClientRect();
+      const padding = 60;
+      const x = padding + Math.random() * (rect.width - padding * 2);
+      const y = padding + 60 + Math.random() * (rect.height - padding * 2 - 80);
+      button.style.left = x + "px";
+      button.style.top = y + "px";
     }
 
-    function startDragFromPalette(item, e) {
-        dragState = {
-            source: 'palette',
-            templateId: item.dataset.templateId,
-            startX: e.clientX,
-            startY: e.clientY,
-            ghost: null
-        };
-        document.body.setPointerCapture(e.pointerId);
+    function moveButtonAway(pointerX, pointerY) {
+      const rect = button.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = centerX - pointerX;
+      const dy = centerY - pointerY;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      const step = 150 + Math.random() * 120;
+      const nx = centerX + (dx / dist) * step;
+      const ny = centerY + (dy / dist) * step;
+
+      const gameRect = game.getBoundingClientRect();
+      let newX = Math.min(Math.max(nx, gameRect.left + 40), gameRect.right - 40);
+      let newY = Math.min(Math.max(ny, gameRect.top + 80), gameRect.bottom - 40);
+
+      button.style.left = newX + "px";
+      button.style.top = newY + "px";
+      playWeirdBeep("teleport");
     }
 
-    function startDragFromBoard(element, e) {
-        dragState = {
-            source: 'board',
-            element: element,
-            startX: e.clientX,
-            startY: e.clientY,
-            ghost: null
-        };
-        document.body.setPointerCapture(e.pointerId);
+    function pointerNearButton(ev) {
+      const rect = button.getBoundingClientRect();
+      const x = ev.clientX;
+      const y = ev.clientY;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
+      return dist < 120;
     }
 
-    function createGhostFromElement(el, x, y) {
-        const rect = el.getBoundingClientRect();
-        const ghost = el.cloneNode(true);
-        ghost.classList.add('dragging-ghost');
-        ghost.style.width = rect.width + 'px';
-        ghost.style.height = rect.height + 'px';
-        ghost.style.left = x + 'px';
-        ghost.style.top = y + 'px';
-        document.body.appendChild(ghost);
-        return ghost;
+    function handlePointerMove(ev) {
+      if (winScreen.classList.contains("hidden") === false) return;
+      if (pointerNearButton(ev)) {
+        moveButtonAway(ev.clientX, ev.clientY);
+        attempts++;
+        statusEl.textContent = weirdStatusText();
+      }
     }
 
-    function onPointerMove(e) {
-        if (!dragState) return;
+    function weirdStatusText() {
+      const msgs = [
+        "Miss igen. Knappen tycker inte om dig.",
+        "Spelet: 1 000 000, du: 0.",
+        "Tips: Ge upp. (Fast inte på riktigt.)",
+        "Vilja skrattar åt dina försök just nu.",
+        "Knappen är allergisk mot fingrar.",
+        "Den här rundan var en träningsrunda.",
+        "Ny taktik: tryck snabbare än spelet hinner tänka."
+      ];
+      return msgs[Math.floor(Math.random() * msgs.length)];
+    }
 
-        const x = e.clientX;
-        const y = e.clientY;
-        dragState.x = x;
-        dragState.y = y;
+    function tempText(text, x, y) {
+      const div = document.createElement("div");
+      div.className = "tempOverlay";
+      div.textContent = text;
+      div.style.left = x + "px";
+      div.style.top = y + "px";
+      game.appendChild(div);
+      setTimeout(() => div.remove(), 1000);
+    }
 
-        if (!dragState.ghost) {
-            let sourceEl;
-            if (dragState.source === 'palette') {
-                sourceEl = dragStateFromPalettePreview(dragState.templateId);
-            } else {
-                sourceEl = dragState.element;
-            }
-            dragState.ghost = createGhostFromElement(sourceEl, x, y);
+    function showCatOverlay() {
+      const div = document.createElement("div");
+      div.className = "catOverlay";
+      const span = document.createElement("span");
+      span.textContent = "😼";
+      const p = document.createElement("p");
+      const lines = [
+        "Katten Lo blockerar knappen.",
+        "Du måste klia katten först.",
+        "Mjau. Inga klick här."
+      ];
+      p.textContent = lines[Math.floor(Math.random() * lines.length)];
+      div.appendChild(span);
+      div.appendChild(p);
+      game.appendChild(div);
+      playWeirdBeep("cat");
+      setTimeout(() => div.remove(), 1500);
+    }
+
+    function randomScreenEffect() {
+      const r = Math.random();
+      if (r < 0.2) {
+        // Skaka
+        document.body.classList.add("shake");
+        playWeirdBeep("fail");
+        setTimeout(() => document.body.classList.remove("shake"), 400);
+      } else if (r < 0.4) {
+        // Spin
+        document.body.classList.add("spin");
+        playWeirdBeep();
+        setTimeout(() => document.body.classList.remove("spin"), 1000);
+      } else if (r < 0.55) {
+        // Invert
+        document.body.classList.add("invert");
+        setTimeout(() => document.body.classList.remove("invert"), 600);
+      } else if (r < 0.7) {
+        // Katt
+        showCatOverlay();
+      } else if (r < 0.85) {
+        // Falska knappar
+        spawnFakeButton();
+      } else {
+        // Knappen blir mini eller mega eller försvinner kort
+        const mode = Math.floor(Math.random() * 3);
+        if (mode === 0) {
+          button.classList.remove("huge");
+          button.classList.add("tiny");
+        } else if (mode === 1) {
+          button.classList.remove("tiny");
+          button.classList.add("huge");
         } else {
-            dragState.ghost.style.left = x + 'px';
-            dragState.ghost.style.top = y + 'px';
+          button.classList.add("hiddenBtn");
+          setTimeout(() => button.classList.remove("hiddenBtn"), 700);
         }
+      }
     }
 
-    function dragStateFromPalettePreview(templateId) {
-        const paletteItem = Array.from(paletteItems)
-            .find(p => p.dataset.templateId === templateId);
-        return paletteItem.firstElementChild;
+    function spawnFakeButton() {
+      // rensa gamla ibland
+      if (fakeButtons.length > 6) {
+        const b = fakeButtons.shift();
+        b.remove();
+      }
+      const rect = game.getBoundingClientRect();
+      const fb = document.createElement("button");
+      fb.className = "fakeButton";
+      const texts = [
+        "Fel knapp",
+        "Inte den här",
+        "Nästan rätt",
+        "Tryck inte här",
+        "Definitivt fel"
+      ];
+      fb.textContent = texts[Math.floor(Math.random() * texts.length)];
+      const x = 10 + Math.random() * (rect.width - 100);
+      const y = 60 + Math.random() * (rect.height - 120);
+      fb.style.left = x + "px";
+      fb.style.top = y + "px";
+      fb.addEventListener("click", (e) => {
+        e.stopPropagation();
+        playWeirdBeep("fail");
+        tempText("HAHA, fel knapp.", e.clientX, e.clientY);
+      });
+      game.appendChild(fb);
+      fakeButtons.push(fb);
     }
 
-    function onPointerUp(e) {
-        if (!dragState) return;
-
-        const x = dragState.x ?? e.clientX;
-        const y = dragState.y ?? e.clientY;
-
-        if (dragState.ghost) {
-            dragState.ghost.remove();
-        }
-
-        const rect = timeline.getBoundingClientRect();
-        const inside =
-            x >= rect.left && x <= rect.right &&
-            y >= rect.top && y <= rect.bottom;
-
-        if (inside) {
-            if (dragState.source === 'palette') {
-                const tpl = document.getElementById(dragState.templateId);
-                if (tpl) {
-                    const node = tpl.content.firstElementChild.cloneNode(true);
-                    node.id = createId();
-                    makeBoardDraggable(node);
-                    insertAtPosition(node, x);
-                }
-            } else if (dragState.source === 'board') {
-                insertAtPosition(dragState.element, x);
-            }
-        }
-
-        dragState = null;
+    function maybeAllowClick() {
+      // Efter ett antal försök börjar det ibland släppa igenom klick
+      const baseChance = 0.01; // 1 %
+      const bonus = Math.min(attempts / 2000, 0.25); // max +25 %
+      const chance = baseChance + bonus;
+      allowedClick = Math.random() < chance;
     }
 
-    function insertAtPosition(node, x) {
-        const children = Array.from(timeline.children);
-        if (children.length === 0) {
-            timeline.appendChild(node);
-            return;
-        }
-
-        // hitta plats baserat på x-position
-        let inserted = false;
-        for (let child of children) {
-            const r = child.getBoundingClientRect();
-            const centerX = r.left + r.width / 2;
-            if (x < centerX) {
-                timeline.insertBefore(node, child);
-                inserted = true;
-                break;
-            }
-        }
-        if (!inserted) {
-            timeline.appendChild(node);
-        }
+    function win() {
+      winScreen.classList.remove("hidden");
+      playWeirdBeep("win");
+      statusEl.textContent = "Du vann. Spelet är brutet.";
     }
 
-    function makeBoardDraggable(node) {
-        node.classList.add('draggable');
-        node.addEventListener('pointerdown', e => {
-            if (isInsideContentEditable(e.target)) return;
-            e.preventDefault();
-            startDragFromBoard(node, e);
-        });
+    function resetGame() {
+      attempts = 0;
+      allowedClick = false;
+      statusEl.textContent = "Ny runda. Försök trycka på knappen.";
+      winScreen.classList.add("hidden");
+      fakeButtons.forEach(b => b.remove());
+      fakeButtons = [];
+      placeButtonRandom();
     }
 
-    // global lyssnare
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
+    // Hantera försök att klicka själva knappen
+    button.addEventListener("pointerdown", (ev) => {
+      ensureAudio();
+      ev.preventDefault();
+      attempts++;
 
-    // init palette
-    setupPalette();
-})();
-</script>
+      maybeAllowClick();
+
+      if (allowedClick) {
+        win();
+        return;
+      }
+
+      playWeirdBeep("fail");
+      tempText("NOPE!", ev.clientX, ev.clientY);
+      moveButtonAway(ev.clientX, ev.clientY);
+      statusEl.textContent = weirdStatusText();
+    });
+
+    // Flytta sig när fingret är nära
+    game.addEventListener("pointermove", handlePointerMove);
+
+    // Extra: tryck utanför knappen = lite hån
+    game.addEventListener("pointerdown", (ev) => {
+      if (ev.target === button || winScreen.contains(ev.target)) return;
+      ensureAudio();
+      attempts++;
+      playWeirdBeep();
+      if (Math.random() < 0.4) {
+        tempText("Det där var inte ens nära.", ev.clientX, ev.clientY);
+      }
+    });
+
+    // Random effekter
+    setInterval(() => {
+      if (winScreen.classList.contains("hidden")) {
+        randomScreenEffect();
+      }
+    }, 1500);
+
+    // Spela igen
+    playAgainBtn.addEventListener("click", () => {
+      ensureAudio();
+      resetGame();
+    });
+
+    // Init
+    window.addEventListener("load", () => {
+      placeButtonRandom();
+    });
+
+    window.addEventListener("resize", () => {
+      placeButtonRandom();
+    });
+  </script>
 </body>
 </html>
