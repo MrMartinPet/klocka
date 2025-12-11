@@ -122,7 +122,7 @@
 <body>
   <div id="game">
     <canvas id="canvas"></canvas>
-    <div id="hud">Du och myggan spawnar i samma blodrum. Fly, ät smådjur, överlev.</div>
+    <div id="hud">Spring, ät smådjur för immunitet, undvik myggan.</div>
 
     <div id="controls">
       <div class="btnDir" id="btnUp">▲</div>
@@ -172,9 +172,9 @@
     let bestTime = 0;
     let lastSurvival = 0;
 
-    // startpositioner (sätts i buildMaze)
-    let startPlayer = { x: 80, y: 80 };
-    let startMosquito = { x: 300, y: 200 };
+    // startpositioner (nu långt ifrån varandra)
+    let startPlayer = { x: 0, y: 0 };
+    let startMosquito = { x: 0, y: 0 };
 
     function ensureAudio() {
       if (!audioCtx) {
@@ -289,61 +289,28 @@
       walls.length = 0;
       const thick = 20;
 
-      // yttre väggar
+      // bara yttre väggar nu
       walls.push({ x: 0, y: 0, w: W, h: thick });
       walls.push({ x: 0, y: H - thick, w: W, h: thick });
       walls.push({ x: 0, y: 0, w: thick, h: H });
       walls.push({ x: W - thick, y: 0, w: thick, h: H });
 
-      // CENTRALT "RUM" där båda spawnar
-      const roomW = W * 0.45;
-      const roomH = H * 0.45;
-      const roomX = (W - roomW) / 2;
-      const roomY = (H - roomH) / 2;
-      const doorW = Math.max(70, roomW * 0.25); // öppning i taket
-
-      // toppvägg med dörr i mitten
-      const topLeftW = (roomW - doorW) / 2;
-      const topRightX = roomX + topLeftW + doorW;
-      walls.push({ x: roomX,         y: roomY, w: topLeftW,   h: thick });
-      walls.push({ x: topRightX,     y: roomY, w: topLeftW,   h: thick });
-
-      // bottenvägg (helt stängd)
-      walls.push({ x: roomX,         y: roomY + roomH, w: roomW, h: thick });
-
-      // sidoväggar (lite lägre för öppning nedåt)
-      const sideGapH = 60;
-      // vänster
-      walls.push({ x: roomX, y: roomY, w: thick, h: (roomH - sideGapH) / 2 });
-      walls.push({ x: roomX, y: roomY + (roomH + sideGapH) / 2, w: thick, h: (roomH - sideGapH) / 2 });
-      // höger
-      walls.push({ x: roomX + roomW, y: roomY, w: thick, h: (roomH - sideGapH) / 2 });
-      walls.push({ x: roomX + roomW, y: roomY + (roomH + sideGapH) / 2, w: thick, h: (roomH - sideGapH) / 2 });
-
-      // NÅGRA FÅ EXTRA VÄGGAR ute i labyrinten (mycket öppet)
-      const midY = H * 0.6;
-      walls.push({ x: W * 0.15, y: midY, w: W * 0.25, h: thick });
-      walls.push({ x: W * 0.6,  y: midY, w: W * 0.25, h: thick });
-
-      const midX = W * 0.3;
-      walls.push({ x: midX, y: H * 0.15, w: thick, h: H * 0.25 });
-      walls.push({ x: W * 0.6, y: H * 0.65, w: thick, h: H * 0.2 });
-
-      // sätt startpositioner i rummet
-      startPlayer.x = roomX + roomW * 0.3;
-      startPlayer.y = roomY + roomH * 0.7;
-      startMosquito.x = roomX + roomW * 0.7;
-      startMosquito.y = roomY + roomH * 0.3;
-
-      // lite initiala blodhögar
+      // några blodfläckar
       bloodDrops.length = 0;
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 12; i++) {
         addBlood(
-          roomX + 20 + Math.random() * (roomW - 40),
-          roomY + 20 + Math.random() * (roomH - 40),
+          thick + 40 + Math.random() * (W - thick * 2 - 80),
+          thick + 40 + Math.random() * (H - thick * 2 - 80),
           true
         );
       }
+
+      // startpositioner (långt ifrån varandra)
+      startPlayer.x = thick + 60;
+      startPlayer.y = H - thick - 60;
+
+      startMosquito.x = W - thick - 60;
+      startMosquito.y = thick + 60;
     }
 
     function circleRectCollision(cx, cy, cr, rect) {
@@ -390,7 +357,6 @@
 
       let vx, vy;
       if (isImmune()) {
-        // flyr från spelaren när du är immun
         vx = (-dx / dist) * step * 1.2;
         vy = (-dy / dist) * step * 1.2;
       } else {
@@ -453,7 +419,6 @@
           eatAnimal(a);
         }
       }
-      // se till att det alltid finns några aktiva smådjur
       const activeCount = animals.filter(a => a.active).length;
       if (activeCount < 3 && Math.random() < 0.02) {
         spawnAnimal();
@@ -517,14 +482,7 @@
         ctx.save();
         ctx.translate(a.x, a.y);
 
-        // blodig aura
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(255,0,0,0.6)";
-        ctx.lineWidth = 2;
-        ctx.arc(0, 0, a.r + 4, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // kropp – lite olika beroende på art
+        // kropp – olika för art, utan ring
         if (a.species === "råtta") {
           ctx.fillStyle = "#444";
           ctx.beginPath();
@@ -562,7 +520,6 @@
           ctx.closePath();
           ctx.fill();
         } else {
-          // fladdermus
           ctx.fillStyle = "#222222";
           ctx.beginPath();
           ctx.ellipse(0, 0, a.r, a.r - 2, 0, 0, Math.PI * 2);
@@ -585,14 +542,7 @@
       ctx.save();
       ctx.translate(player.x, player.y);
 
-      // blodring / immunitet
-      ctx.beginPath();
-      ctx.strokeStyle = immune ? "rgba(0,255,150,0.9)" : "rgba(255,0,0,0.6)";
-      ctx.lineWidth = immune ? 4 : 3;
-      ctx.arc(0, 0, player.r + 4, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // huvud
+      // huvud (ingen ring)
       ctx.beginPath();
       ctx.fillStyle = immune ? "#e0ffe0" : "#f2dede";
       ctx.arc(0, -player.r * 0.7, player.r * 0.6, 0, Math.PI * 2);
@@ -646,14 +596,7 @@
       const t = Date.now() * 0.01;
       const wingAngle = Math.sin(t * 0.7) * 0.5;
 
-      // blodgloria
-      ctx.beginPath();
-      ctx.strokeStyle = isImmune() ? "rgba(150,0,0,0.7)" : "rgba(255,0,0,0.9)";
-      ctx.lineWidth = 2;
-      ctx.arc(0, 0, mosquito.r + 10, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // vingar
+      // vingar (ingen ring)
       ctx.save();
       ctx.rotate(-0.4 + wingAngle);
       ctx.beginPath();
@@ -676,7 +619,7 @@
       ctx.ellipse(0, 0, mosquito.r + 2, mosquito.r - 2, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // "magen" full av blod
+      // blodmage
       ctx.beginPath();
       ctx.fillStyle = "#cc0000";
       ctx.ellipse(0, 4, mosquito.r, mosquito.r - 4, 0, 0, Math.PI * 2);
@@ -778,7 +721,6 @@
       requestAnimationFrame(loop);
     }
 
-    // buzz-ljud med intervall
     setInterval(() => {
       if (gameState !== "playing") return;
       const dx = player.x - mosquito.x;
@@ -788,7 +730,7 @@
       if (!isImmune() && Math.random() < 0.1 && dist < 350) playScreech();
     }, 350);
 
-    // input – tangentbord
+    // tangentbord
     window.addEventListener("keydown", (e) => {
       ensureAudio();
       if (e.key === "ArrowUp" || e.key === "w") dir.up = true;
