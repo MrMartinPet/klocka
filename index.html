@@ -2,230 +2,166 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <title>Vilja är bäst!</title>
+  <title>Blodlabyrinten – Myggskräcken</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=no" />
   <style>
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
-
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
+      background: radial-gradient(circle at top, #550000 0, #020005 60%);
+      color: #eee;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #ffddff 0, #111 65%);
-      color: #fff;
     }
-
-    body.shake {
-      animation: shake 0.4s linear;
-    }
-
-    body.spin {
-      animation: spin 1s linear;
-    }
-
-    body.invert {
-      filter: invert(1) hue-rotate(180deg);
-    }
-
     #game {
       position: relative;
       width: 100%;
       height: 100%;
-      overflow: hidden;
     }
-
-    #status {
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    #hud {
       position: absolute;
-      top: 8px;
+      top: 6px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 6px 12px;
-      background: rgba(0,0,0,0.5);
+      padding: 4px 10px;
+      background: rgba(0,0,0,0.6);
       border-radius: 999px;
-      font-size: 14px;
+      font-size: 12px;
       text-align: center;
-      max-width: 90%;
+      z-index: 10;
+      max-width: 95%;
+      pointer-events: none;
+    }
+    #controls {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 150px;
+      height: 150px;
       z-index: 20;
     }
-
-    #viljaButton {
+    .btnDir {
       position: absolute;
-      padding: 18px 30px;
+      width: 50px;
+      height: 50px;
+      background: rgba(0,0,0,0.6);
       border-radius: 999px;
-      border: none;
-      font-size: 18px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #ff00ff, #ffea00);
-      color: #111;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      cursor: pointer;
-      transform: translate(-50%, -50%);
-      transition: transform 0.05s linear, filter 0.1s ease, opacity 0.2s ease;
-      touch-action: none;
-      z-index: 10;
-    }
-
-    #viljaButton.tiny {
-      transform: translate(-50%, -50%) scale(0.6);
-    }
-
-    #viljaButton.huge {
-      transform: translate(-50%, -50%) scale(1.5);
-    }
-
-    #viljaButton.hiddenBtn {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    #winScreen {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.9);
+      border: 1px solid rgba(255,0,0,0.5);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      padding: 20px;
-      z-index: 100;
+      color: #fdd;
+      font-size: 20px;
+      user-select: none;
     }
+    .btnDir:active {
+      background: rgba(200,0,0,0.9);
+    }
+    #btnUp   { left: 50px; top: 0; }
+    #btnDown { left: 50px; top: 100px; }
+    #btnLeft { left: 0; top: 50px; }
+    #btnRight{ left: 100px; top: 50px; }
 
-    #winScreen.hidden {
+    #message {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 25px;
+      background: rgba(0,0,0,0.9);
+      border: 2px solid #900;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 30;
+      max-width: 80%;
       display: none;
     }
-
-    #winScreen h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
+    #message h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      color: #ff3333;
     }
-
-    #winScreen p {
+    #message p {
       margin: 4px 0;
-      font-size: 16px;
+      font-size: 14px;
     }
-
-    #winScreen button {
-      margin-top: 18px;
-      padding: 10px 20px;
+    #message button {
+      margin-top: 12px;
+      padding: 8px 14px;
       border-radius: 999px;
       border: none;
-      font-size: 16px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #00ffcc, #00aaff);
+      background: linear-gradient(135deg, #ff0000, #ff8800);
       color: #111;
+      font-size: 14px;
       cursor: pointer;
     }
 
-    .tempOverlay {
-      position: absolute;
-      color: #fff;
-      font-weight: 700;
-      text-shadow: 0 0 10px rgba(0,0,0,0.7);
-      z-index: 30;
-      pointer-events: none;
-      animation: floatUp 1s ease-out forwards;
+    body.cageFlash {
+      animation: cageFlash 0.5s linear;
     }
 
-    .catOverlay {
-      position: absolute;
-      inset: 10% 5%;
-      border-radius: 20px;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      animation: fadeInOut 1.5s ease-out forwards;
-      pointer-events: none;
-      text-align: center;
-      padding: 10px;
-    }
-
-    .catOverlay span {
-      font-size: 40px;
-      margin-bottom: 8px;
-    }
-
-    .catOverlay p {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .fakeButton {
-      position: absolute;
-      padding: 10px 14px;
-      border-radius: 30px;
-      border: 1px solid rgba(255,255,255,0.5);
-      background: rgba(0,0,0,0.5);
-      font-size: 12px;
-      color: #fff;
-      pointer-events: auto;
-      z-index: 5;
-    }
-
-    .fakeButton:active {
-      transform: scale(0.95);
-    }
-
-    @keyframes shake {
-      0% { transform: translate(0,0); }
-      20% { transform: translate(-5px, 4px); }
-      40% { transform: translate(4px,-4px); }
-      60% { transform: translate(-4px,-2px); }
-      80% { transform: translate(3px,4px); }
-      100% { transform: translate(0,0); }
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes floatUp {
-      from { opacity: 1; transform: translate(-50%, 0); }
-      to { opacity: 0; transform: translate(-50%, -60px); }
-    }
-
-    @keyframes fadeInOut {
-      0% { opacity: 0; transform: scale(0.8); }
-      20% { opacity: 1; transform: scale(1); }
-      80% { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(0.9); }
+    @keyframes cageFlash {
+      0%   { filter: none; }
+      25%  { filter: hue-rotate(90deg) brightness(1.5); }
+      50%  { filter: invert(1) contrast(1.4); }
+      100% { filter: none; }
     }
   </style>
 </head>
 <body>
   <div id="game">
-    <div id="status">Försök trycka på “Vilja är bäst!”-knappen. Lycka till.</div>
-    <button id="viljaButton">Vilja är bäst!</button>
+    <canvas id="canvas"></canvas>
+    <div id="hud">Spring genom blodlabyrinten. Undvik den blodtörstiga myggan.</div>
 
-    <div id="winScreen" class="hidden">
-      <h1>DU KLARADE DET!</h1>
-      <p>Du tryckte på knappen.</p>
-      <p>Bevis: Du är officiellt lika omöjlig som spelet.</p>
-      <p>Vilja är bäst. Och du nästan.</p>
-      <button id="playAgain">Spela igen</button>
+    <div id="controls">
+      <div class="btnDir" id="btnUp">▲</div>
+      <div class="btnDir" id="btnDown">▼</div>
+      <div class="btnDir" id="btnLeft">◀</div>
+      <div class="btnDir" id="btnRight">▶</div>
+    </div>
+
+    <div id="message">
+      <h1>FÅNGAD!</h1>
+      <p>Myggan hittade dig i labyrinten.</p>
+      <p>Du vaknar upp i en blodig bur.</p>
+      <p>Tryck på Spela igen för att försöka fly.</p>
+      <button id="btnRestart">Spela igen</button>
     </div>
   </div>
 
   <script>
-    const game = document.getElementById("game");
-    const button = document.getElementById("viljaButton");
-    const statusEl = document.getElementById("status");
-    const winScreen = document.getElementById("winScreen");
-    const playAgainBtn = document.getElementById("playAgain");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const hud = document.getElementById("hud");
+    const msgBox = document.getElementById("message");
+    const btnRestart = document.getElementById("btnRestart");
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
 
     let audioCtx = null;
-    let attempts = 0;
-    let allowedClick = false; // släpper igenom ibland
-    let fakeButtons = [];
+    let gameState = "playing"; // "playing" | "caught"
+
+    const player = { x: 80, y: 80, r: 14, speed: 2.4 };
+    const mosquito = { x: 300, y: 200, r: 12, speed: 2.1 };
+
+    const walls = [];
+    const bloodDrops = [];
+
+    const dir = { up: false, down: false, left: false, right: false };
 
     function ensureAudio() {
       if (!audioCtx) {
@@ -236,282 +172,468 @@
       }
     }
 
-    function playWeirdBeep(type = "random") {
+    function playBuzz(distance) {
       ensureAudio();
       if (!audioCtx) return;
-      const ctx = audioCtx;
+      const ctxA = audioCtx;
+      const osc = ctxA.createOscillator();
+      const gain = ctxA.createGain();
 
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const maxDist = 600;
+      const intensity = Math.max(0.1, 1 - distance / maxDist);
+      const freq = 200 + 800 * intensity;
 
-      let freq;
-      switch (type) {
-        case "fail":
-          freq = 120 + Math.random() * 80;
-          break;
-        case "cat":
-          freq = 400 + Math.random() * 200;
-          break;
-        case "teleport":
-          freq = 700 + Math.random() * 600;
-          break;
-        case "win":
-          freq = 500;
-          break;
-        default:
-          freq = 150 + Math.random() * 900;
-      }
-
+      osc.type = "sawtooth";
       osc.frequency.value = freq;
-      osc.type = ["sine", "square", "sawtooth", "triangle"][Math.floor(Math.random() * 4)];
-      const now = ctx.currentTime;
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25 + Math.random() * 0.1);
+
+      const now = ctxA.currentTime;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.12 * intensity, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
 
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(ctxA.destination);
       osc.start(now);
-      osc.stop(now + 0.3);
+      osc.stop(now + 0.23);
     }
 
-    function placeButtonRandom() {
-      const rect = game.getBoundingClientRect();
-      const padding = 60;
-      const x = padding + Math.random() * (rect.width - padding * 2);
-      const y = padding + 60 + Math.random() * (rect.height - padding * 2 - 80);
-      button.style.left = x + "px";
-      button.style.top = y + "px";
+    function playScreech() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const ctxA = audioCtx;
+      const osc = ctxA.createOscillator();
+      const gain = ctxA.createGain();
+      osc.type = "square";
+      const now = ctxA.currentTime;
+      osc.frequency.setValueAtTime(1500, now);
+      osc.frequency.exponentialRampToValueAtTime(200, now + 0.4);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+      osc.connect(gain);
+      gain.connect(ctxA.destination);
+      osc.start(now);
+      osc.stop(now + 0.45);
     }
 
-    function moveButtonAway(pointerX, pointerY) {
-      const rect = button.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+    function playCageHit() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const ctxA = audioCtx;
+      const osc = ctxA.createOscillator();
+      const gain = ctxA.createGain();
+      osc.type = "triangle";
+      const now = ctxA.currentTime;
+      osc.frequency.setValueAtTime(80, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      osc.connect(gain);
+      gain.connect(ctxA.destination);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    }
 
-      const dx = centerX - pointerX;
-      const dy = centerY - pointerY;
+    function addBlood(x, y, big = false) {
+      const amount = big ? 8 : 3;
+      for (let i = 0; i < amount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = (big ? 40 : 18) * Math.random();
+        const bx = x + Math.cos(angle) * dist;
+        const by = y + Math.sin(angle) * dist;
+        bloodDrops.push({
+          x: bx,
+          y: by,
+          r: big ? 5 + Math.random() * 6 : 2 + Math.random() * 3,
+          alpha: big ? 0.9 : 0.7
+        });
+      }
+    }
+
+    function buildMaze() {
+      walls.length = 0;
+      const thick = 20;
+
+      // yttre väggar
+      walls.push({ x: 0, y: 0, w: W, h: thick });
+      walls.push({ x: 0, y: H - thick, w: W, h: thick });
+      walls.push({ x: 0, y: 0, w: thick, h: H });
+      walls.push({ x: W - thick, y: 0, w: thick, h: H });
+
+      // enkla inre väggar (labyrintkänsla)
+      const seg = Math.max(150, W / 5);
+      walls.push({ x: seg, y: thick, w: thick, h: H * 0.6 });
+      walls.push({ x: seg * 2, y: H * 0.4, w: thick, h: H * 0.6 - thick });
+      walls.push({ x: seg * 3, y: thick, w: thick, h: H * 0.7 });
+      walls.push({ x: seg * 4, y: H * 0.3, w: thick, h: H * 0.7 - thick });
+
+      walls.push({ x: thick, y: H * 0.3, w: seg * 0.8, h: thick });
+      walls.push({ x: seg * 1.4, y: H * 0.7, w: seg * 1.4, h: thick });
+      walls.push({ x: seg * 2.2, y: H * 0.2, w: seg * 1.2, h: thick });
+      walls.push({ x: seg * 3.2, y: H * 0.5, w: seg * 1.0, h: thick });
+
+      // lite blodhögar
+      for (let i = 0; i < 12; i++) {
+        addBlood(
+          thick + 40 + Math.random() * (W - thick * 2 - 80),
+          thick + 40 + Math.random() * (H - thick * 2 - 80),
+          true
+        );
+      }
+    }
+
+    function circleRectCollision(cx, cy, cr, rect) {
+      const closestX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+      const closestY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+      const dx = cx - closestX;
+      const dy = cy - closestY;
+      return (dx * dx + dy * dy) < cr * cr;
+    }
+
+    function canMoveTo(x, y, r) {
+      for (const w of walls) {
+        if (circleRectCollision(x, y, r, w)) return false;
+      }
+      return true;
+    }
+
+    function updatePlayer() {
+      let vx = 0, vy = 0;
+      if (dir.up) vy -= 1;
+      if (dir.down) vy += 1;
+      if (dir.left) vx -= 1;
+      if (dir.right) vx += 1;
+      if (vx === 0 && vy === 0) return;
+
+      const len = Math.sqrt(vx * vx + vy * vy) || 1;
+      vx = (vx / len) * player.speed;
+      vy = (vy / len) * player.speed;
+
+      const nx = player.x + vx;
+      const ny = player.y + vy;
+
+      if (canMoveTo(nx, player.y, player.r)) player.x = nx;
+      if (canMoveTo(player.x, ny, player.r)) player.y = ny;
+
+      addBlood(player.x, player.y, false);
+    }
+
+    function updateMosquito() {
+      const dx = player.x - mosquito.x;
+      const dy = player.y - mosquito.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const step = mosquito.speed;
 
-      const step = 150 + Math.random() * 120;
-      const nx = centerX + (dx / dist) * step;
-      const ny = centerY + (dy / dist) * step;
+      let vx = (dx / dist) * step;
+      let vy = (dy / dist) * step;
 
-      const gameRect = game.getBoundingClientRect();
-      let newX = Math.min(Math.max(nx, gameRect.left + 40), gameRect.right - 40);
-      let newY = Math.min(Math.max(ny, gameRect.top + 80), gameRect.bottom - 40);
+      const nx = mosquito.x + vx;
+      const ny = mosquito.y + vy;
 
-      button.style.left = newX + "px";
-      button.style.top = newY + "px";
-      playWeirdBeep("teleport");
-    }
+      if (canMoveTo(nx, mosquito.y, mosquito.r)) mosquito.x = nx;
+      if (canMoveTo(mosquito.x, ny, mosquito.r)) mosquito.y = ny;
 
-    function pointerNearButton(ev) {
-      const rect = button.getBoundingClientRect();
-      const x = ev.clientX;
-      const y = ev.clientY;
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
-      return dist < 120;
-    }
-
-    function handlePointerMove(ev) {
-      if (winScreen.classList.contains("hidden") === false) return;
-      if (pointerNearButton(ev)) {
-        moveButtonAway(ev.clientX, ev.clientY);
-        attempts++;
-        statusEl.textContent = weirdStatusText();
+      if (dist < player.r + mosquito.r + 4) {
+        catchPlayer();
       }
     }
 
-    function weirdStatusText() {
-      const msgs = [
-        "Miss igen. Knappen tycker inte om dig.",
-        "Spelet: 1 000 000, du: 0.",
-        "Tips: Ge upp. (Fast inte på riktigt.)",
-        "Vilja skrattar åt dina försök just nu.",
-        "Knappen är allergisk mot fingrar.",
-        "Den här rundan var en träningsrunda.",
-        "Ny taktik: tryck snabbare än spelet hinner tänka."
-      ];
-      return msgs[Math.floor(Math.random() * msgs.length)];
+    function catchPlayer() {
+      if (gameState === "caught") return;
+      gameState = "caught";
+      addBlood(player.x, player.y, true);
+      playBuzz(0);
+      playScreech();
+      playCageHit();
+      document.body.classList.add("cageFlash");
+      setTimeout(() => document.body.classList.remove("cageFlash"), 500);
+      msgBox.style.display = "block";
+      hud.textContent = "Du sitter i en blodig bur. Tryck Spela igen.";
     }
 
-    function tempText(text, x, y) {
-      const div = document.createElement("div");
-      div.className = "tempOverlay";
-      div.textContent = text;
-      div.style.left = x + "px";
-      div.style.top = y + "px";
-      game.appendChild(div);
-      setTimeout(() => div.remove(), 1000);
+    function drawBackground() {
+      const grad = ctx.createRadialGradient(
+        W * 0.5, H * 0.3, 50,
+        W * 0.5, H * 0.5, Math.max(W, H)
+      );
+      grad.addColorStop(0, "#330000");
+      grad.addColorStop(0.4, "#220000");
+      grad.addColorStop(1, "#020003");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
     }
 
-    function showCatOverlay() {
-      const div = document.createElement("div");
-      div.className = "catOverlay";
-      const span = document.createElement("span");
-      span.textContent = "😼";
-      const p = document.createElement("p");
-      const lines = [
-        "Katten Lo blockerar knappen.",
-        "Du måste klia katten först.",
-        "Mjau. Inga klick här."
-      ];
-      p.textContent = lines[Math.floor(Math.random() * lines.length)];
-      div.appendChild(span);
-      div.appendChild(p);
-      game.appendChild(div);
-      playWeirdBeep("cat");
-      setTimeout(() => div.remove(), 1500);
-    }
-
-    function randomScreenEffect() {
-      const r = Math.random();
-      if (r < 0.2) {
-        // Skaka
-        document.body.classList.add("shake");
-        playWeirdBeep("fail");
-        setTimeout(() => document.body.classList.remove("shake"), 400);
-      } else if (r < 0.4) {
-        // Spin
-        document.body.classList.add("spin");
-        playWeirdBeep();
-        setTimeout(() => document.body.classList.remove("spin"), 1000);
-      } else if (r < 0.55) {
-        // Invert
-        document.body.classList.add("invert");
-        setTimeout(() => document.body.classList.remove("invert"), 600);
-      } else if (r < 0.7) {
-        // Katt
-        showCatOverlay();
-      } else if (r < 0.85) {
-        // Falska knappar
-        spawnFakeButton();
-      } else {
-        // Knappen blir mini eller mega eller försvinner kort
-        const mode = Math.floor(Math.random() * 3);
-        if (mode === 0) {
-          button.classList.remove("huge");
-          button.classList.add("tiny");
-        } else if (mode === 1) {
-          button.classList.remove("tiny");
-          button.classList.add("huge");
-        } else {
-          button.classList.add("hiddenBtn");
-          setTimeout(() => button.classList.remove("hiddenBtn"), 700);
-        }
+    function drawBlood() {
+      for (let i = 0; i < bloodDrops.length; i++) {
+        const b = bloodDrops[i];
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(180,0,0,${b.alpha})`;
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
-    function spawnFakeButton() {
-      // rensa gamla ibland
-      if (fakeButtons.length > 6) {
-        const b = fakeButtons.shift();
-        b.remove();
+    function drawWalls() {
+      ctx.fillStyle = "#190000";
+      ctx.strokeStyle = "#550000";
+      ctx.lineWidth = 2;
+      for (const w of walls) {
+        ctx.fillRect(w.x, w.y, w.w, w.h);
+        ctx.strokeRect(w.x, w.y, w.w, w.h);
       }
-      const rect = game.getBoundingClientRect();
-      const fb = document.createElement("button");
-      fb.className = "fakeButton";
-      const texts = [
-        "Fel knapp",
-        "Inte den här",
-        "Nästan rätt",
-        "Tryck inte här",
-        "Definitivt fel"
-      ];
-      fb.textContent = texts[Math.floor(Math.random() * texts.length)];
-      const x = 10 + Math.random() * (rect.width - 100);
-      const y = 60 + Math.random() * (rect.height - 120);
-      fb.style.left = x + "px";
-      fb.style.top = y + "px";
-      fb.addEventListener("click", (e) => {
-        e.stopPropagation();
-        playWeirdBeep("fail");
-        tempText("HAHA, fel knapp.", e.clientX, e.clientY);
-      });
-      game.appendChild(fb);
-      fakeButtons.push(fb);
     }
 
-    function maybeAllowClick() {
-      // Efter ett antal försök börjar det ibland släppa igenom klick
-      const baseChance = 0.01; // 1 %
-      const bonus = Math.min(attempts / 2000, 0.25); // max +25 %
-      const chance = baseChance + bonus;
-      allowedClick = Math.random() < chance;
+    function drawPlayer() {
+      // kropp: blek figur
+      ctx.save();
+      ctx.translate(player.x, player.y);
+
+      // blodring runt
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,0,0,0.6)";
+      ctx.lineWidth = 3;
+      ctx.arc(0, 0, player.r + 4, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // huvud
+      ctx.beginPath();
+      ctx.fillStyle = "#f2dede";
+      ctx.arc(0, -player.r * 0.7, player.r * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ögon
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(-4, -player.r * 0.8, 2, 0, Math.PI * 2);
+      ctx.arc(4, -player.r * 0.8, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // mun (rädd)
+      ctx.beginPath();
+      ctx.strokeStyle = "#900";
+      ctx.lineWidth = 1.5;
+      ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
+      ctx.stroke();
+
+      // kropp
+      ctx.strokeStyle = "#f2dede";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -player.r * 0.1);
+      ctx.lineTo(0, player.r * 0.9);
+      ctx.stroke();
+
+      // armar
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-player.r, player.r * 0.3);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(player.r, player.r * 0.3);
+      ctx.stroke();
+
+      // ben
+      ctx.beginPath();
+      ctx.moveTo(0, player.r * 0.9);
+      ctx.lineTo(-player.r * 0.7, player.r * 1.7);
+      ctx.moveTo(0, player.r * 0.9);
+      ctx.lineTo(player.r * 0.7, player.r * 1.7);
+      ctx.stroke();
+
+      ctx.restore();
     }
 
-    function win() {
-      winScreen.classList.remove("hidden");
-      playWeirdBeep("win");
-      statusEl.textContent = "Du vann. Spelet är brutet.";
+    function drawMosquito() {
+      ctx.save();
+      ctx.translate(mosquito.x, mosquito.y);
+
+      const t = Date.now() * 0.01;
+      const wingAngle = Math.sin(t * 0.7) * 0.5;
+
+      // blodgloria
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,0,0,0.9)";
+      ctx.lineWidth = 2;
+      ctx.arc(0, 0, mosquito.r + 10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // vingar
+      ctx.save();
+      ctx.rotate(-0.4 + wingAngle);
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(200,200,255,0.4)";
+      ctx.ellipse(-4, -mosquito.r - 6, 5, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.rotate(0.4 - wingAngle);
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(200,200,255,0.4)";
+      ctx.ellipse(4, -mosquito.r - 6, 5, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // kropp
+      ctx.beginPath();
+      ctx.fillStyle = "#660000";
+      ctx.ellipse(0, 0, mosquito.r + 2, mosquito.r - 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // "magen" full av blod
+      ctx.beginPath();
+      ctx.fillStyle = "#cc0000";
+      ctx.ellipse(0, 4, mosquito.r, mosquito.r - 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ögon
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(-4, -4, 3, 0, Math.PI * 2);
+      ctx.arc(4, -4, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.arc(-4, -4, 1.5, 0, Math.PI * 2);
+      ctx.arc(4, -4, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // snabel
+      ctx.beginPath();
+      ctx.strokeStyle = "#bb0000";
+      ctx.lineWidth = 2;
+      ctx.moveTo(0, -1);
+      ctx.lineTo(0, -mosquito.r - 6);
+      ctx.stroke();
+
+      ctx.restore();
     }
 
-    function resetGame() {
-      attempts = 0;
-      allowedClick = false;
-      statusEl.textContent = "Ny runda. Försök trycka på knappen.";
-      winScreen.classList.add("hidden");
-      fakeButtons.forEach(b => b.remove());
-      fakeButtons = [];
-      placeButtonRandom();
-    }
+    function drawCageOverlay() {
+      if (gameState !== "caught") return;
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.7)";
+      ctx.fillRect(0, 0, W, H);
 
-    // Hantera försök att klicka själva knappen
-    button.addEventListener("pointerdown", (ev) => {
-      ensureAudio();
-      ev.preventDefault();
-      attempts++;
+      ctx.strokeStyle = "rgba(180,180,180,0.7)";
+      ctx.lineWidth = 4;
 
-      maybeAllowClick();
-
-      if (allowedClick) {
-        win();
-        return;
+      const bars = 10;
+      for (let i = 0; i <= bars; i++) {
+        const x = (W / bars) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
       }
 
-      playWeirdBeep("fail");
-      tempText("NOPE!", ev.clientX, ev.clientY);
-      moveButtonAway(ev.clientX, ev.clientY);
-      statusEl.textContent = weirdStatusText();
-    });
-
-    // Flytta sig när fingret är nära
-    game.addEventListener("pointermove", handlePointerMove);
-
-    // Extra: tryck utanför knappen = lite hån
-    game.addEventListener("pointerdown", (ev) => {
-      if (ev.target === button || winScreen.contains(ev.target)) return;
-      ensureAudio();
-      attempts++;
-      playWeirdBeep();
-      if (Math.random() < 0.4) {
-        tempText("Det där var inte ens nära.", ev.clientX, ev.clientY);
+      for (let j = 0; j < 4; j++) {
+        const y = (H / 4) * j;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
       }
-    });
 
-    // Random effekter
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBackground();
+      drawBlood();
+      drawWalls();
+      drawPlayer();
+      drawMosquito();
+      drawCageOverlay();
+    }
+
+    function update() {
+      if (gameState === "playing") {
+        updatePlayer();
+        updateMosquito();
+      }
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    // buzz-ljud med intervall
     setInterval(() => {
-      if (winScreen.classList.contains("hidden")) {
-        randomScreenEffect();
-      }
-    }, 1500);
+      if (gameState !== "playing") return;
+      const dx = player.x - mosquito.x;
+      const dy = player.y - mosquito.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      playBuzz(dist);
+      if (Math.random() < 0.1 && dist < 350) playScreech();
+    }, 350);
 
-    // Spela igen
-    playAgainBtn.addEventListener("click", () => {
+    // input – tangentbord
+    window.addEventListener("keydown", (e) => {
       ensureAudio();
-      resetGame();
+      if (e.key === "ArrowUp" || e.key === "w") dir.up = true;
+      if (e.key === "ArrowDown" || e.key === "s") dir.down = true;
+      if (e.key === "ArrowLeft" || e.key === "a") dir.left = true;
+      if (e.key === "ArrowRight" || e.key === "d") dir.right = true;
+      if (e.key === "r" && gameState === "caught") restart();
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowUp" || e.key === "w") dir.up = false;
+      if (e.key === "ArrowDown" || e.key === "s") dir.down = false;
+      if (e.key === "ArrowLeft" || e.key === "a") dir.left = false;
+      if (e.key === "ArrowRight" || e.key === "d") dir.right = false;
     });
 
-    // Init
-    window.addEventListener("load", () => {
-      placeButtonRandom();
+    // touch / mobilkontroller
+    function setupTouchButton(id, prop) {
+      const el = document.getElementById(id);
+      const start = (ev) => {
+        ev.preventDefault();
+        ensureAudio();
+        dir[prop] = true;
+      };
+      const end = (ev) => {
+        ev.preventDefault();
+        dir[prop] = false;
+      };
+      el.addEventListener("touchstart", start);
+      el.addEventListener("touchend", end);
+      el.addEventListener("touchcancel", end);
+      el.addEventListener("mousedown", start);
+      window.addEventListener("mouseup", end);
+    }
+
+    setupTouchButton("btnUp", "up");
+    setupTouchButton("btnDown", "down");
+    setupTouchButton("btnLeft", "left");
+    setupTouchButton("btnRight", "right");
+
+    function restart() {
+      gameState = "playing";
+      msgBox.style.display = "none";
+      player.x = 80;
+      player.y = 80;
+      mosquito.x = W - 80;
+      mosquito.y = H - 80;
+      hud.textContent = "Spring genom blodlabyrinten. Undvik den blodtörstiga myggan.";
+    }
+
+    btnRestart.addEventListener("click", () => {
+      ensureAudio();
+      restart();
     });
 
     window.addEventListener("resize", () => {
-      placeButtonRandom();
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+      buildMaze();
     });
+
+    buildMaze();
+    loop();
   </script>
 </body>
 </html>
