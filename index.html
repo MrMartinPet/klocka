@@ -46,8 +46,9 @@
     #controls {
       position: absolute;
       bottom: 10px;
-      left: 10px;
-      width: 150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 170px;
       height: 150px;
       z-index: 20;
     }
@@ -68,10 +69,10 @@
     .btnDir:active {
       background: rgba(200,0,0,0.9);
     }
-    #btnUp   { left: 50px; top: 0; }
-    #btnDown { left: 50px; top: 100px; }
-    #btnLeft { left: 0; top: 50px; }
-    #btnRight{ left: 100px; top: 50px; }
+    #btnUp   { left: 60px; top: 0; }
+    #btnDown { left: 60px; top: 100px; }
+    #btnLeft { left: 10px; top: 50px; }
+    #btnRight{ left: 110px; top: 50px; }
 
     #message {
       position: absolute;
@@ -122,7 +123,7 @@
 <body>
   <div id="game">
     <canvas id="canvas"></canvas>
-    <div id="hud">Spring, ät smådjur för immunitet, undvik myggan.</div>
+    <div id="hud">Spring, ät smådjur för immunitet, hitta blodhjärtan för TURBO, täck allt i blod.</div>
 
     <div id="controls">
       <div class="btnDir" id="btnUp">▲</div>
@@ -132,11 +133,10 @@
     </div>
 
     <div id="message">
-      <h1>FÅNGAD!</h1>
+      <h1 id="msgTitle">FÅNGAD!</h1>
       <p id="msgTime"></p>
       <p id="msgBest"></p>
-      <p>Du vaknar upp i en blodig bur.</p>
-      <p>Ät fler smådjur nästa gång för att bli immun.</p>
+      <p id="msgExtra"></p>
       <button id="btnRestart">Spela igen</button>
     </div>
   </div>
@@ -146,8 +146,10 @@
     const ctx = canvas.getContext("2d");
     const hud = document.getElementById("hud");
     const msgBox = document.getElementById("message");
+    const msgTitle = document.getElementById("msgTitle");
     const msgTime = document.getElementById("msgTime");
     const msgBest = document.getElementById("msgBest");
+    const msgExtra = document.getElementById("msgExtra");
     const btnRestart = document.getElementById("btnRestart");
 
     let W = window.innerWidth;
@@ -156,25 +158,29 @@
     canvas.height = H;
 
     let audioCtx = null;
-    let gameState = "playing"; // "playing" | "caught"
+    let gameState = "playing"; // "playing" | "caught" | "won"
 
-    const player = { x: 80, y: 80, r: 14, speed: 2.4 };
+    const player = { x: 80, y: 80, r: 14, baseSpeed: 2.4 };
     const mosquito = { x: 300, y: 200, r: 12, speed: 2.1 };
 
     const walls = [];
     const bloodDrops = [];
     const animals = [];
+    const boosters = []; // blodhjärtan / turbo-pickups
 
     const dir = { up: false, down: false, left: false, right: false };
 
     let immuneUntil = 0;
+    let speedBoostUntil = 0;
     let startTime = performance.now();
     let bestTime = 0;
     let lastSurvival = 0;
 
-    // startpositioner (nu långt ifrån varandra)
     let startPlayer = { x: 0, y: 0 };
     let startMosquito = { x: 0, y: 0 };
+
+    let bloodScore = 0;
+    let bloodGoal = 0; // sätts utifrån skärmstorlek
 
     function ensureAudio() {
       if (!audioCtx) {
@@ -247,7 +253,7 @@
       osc.stop(now + 0.28);
     }
 
-    function playPowerup() {
+    function playPowerup(pitch = 1) {
       ensureAudio();
       if (!audioCtx) return;
       const ctxA = audioCtx;
@@ -255,8 +261,8 @@
       const gain = ctxA.createGain();
       osc.type = "sine";
       const now = ctxA.currentTime;
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.exponentialRampToValueAtTime(900, now + 0.25);
+      osc.frequency.setValueAtTime(300 * pitch, now);
+      osc.frequency.exponentialRampToValueAtTime(900 * pitch, now + 0.25);
       gain.gain.setValueAtTime(0.25, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
       osc.connect(gain);
@@ -268,6 +274,9 @@
     function isImmune() {
       return performance.now() < immuneUntil;
     }
+    function hasSpeedBoost() {
+      return performance.now() < speedBoostUntil;
+    }
 
     function addBlood(x, y, big = false) {
       const amount = big ? 8 : 3;
@@ -276,36 +285,43 @@
         const dist = (big ? 40 : 18) * Math.random();
         const bx = x + Math.cos(angle) * dist;
         const by = y + Math.sin(angle) * dist;
+        const r = big ? 5 + Math.random() * 6 : 2 + Math.random() * 3;
         bloodDrops.push({
           x: bx,
           y: by,
-          r: big ? 5 + Math.random() * 6 : 2 + Math.random() * 3,
+          r: r,
           alpha: big ? 0.9 : 0.7
         });
+        // grov approximation av täckning
+        const areaApprox = Math.PI * r * r * 0.5;
+        bloodScore += areaApprox;
       }
+      checkBloodWin();
     }
 
     function buildMaze() {
       walls.length = 0;
       const thick = 20;
 
-      // bara yttre väggar nu
+      // bara yttre väggar
       walls.push({ x: 0, y: 0, w: W, h: thick });
       walls.push({ x: 0, y: H - thick, w: W, h: thick });
       walls.push({ x: 0, y: 0, w: thick, h: H });
       walls.push({ x: W - thick, y: 0, w: thick, h: H });
 
-      // några blodfläckar
+      // blodfläckar
       bloodDrops.length = 0;
+      bloodScore = 0;
       for (let i = 0; i < 12; i++) {
-        addBlood(
-          thick + 40 + Math.random() * (W - thick * 2 - 80),
-          thick + 40 + Math.random() * (H - thick * 2 - 80),
-          true
-        );
+        const bx = thick + 40 + Math.random() * (W - thick * 2 - 80);
+        const by = thick + 40 + Math.random() * (H - thick * 2 - 80);
+        addBlood(bx, by, true);
       }
 
-      // startpositioner (långt ifrån varandra)
+      // goal = ca 70% av ytan täckt
+      bloodGoal = W * H * 0.7;
+
+      // startpositioner (hörn-diagonal)
       startPlayer.x = thick + 60;
       startPlayer.y = H - thick - 60;
 
@@ -337,8 +353,11 @@
       if (vx === 0 && vy === 0) return;
 
       const len = Math.sqrt(vx * vx + vy * vy) || 1;
-      vx = (vx / len) * player.speed;
-      vy = (vy / len) * player.speed;
+      const speedFactor = hasSpeedBoost() ? 1.9 : 1;
+      const speed = player.baseSpeed * speedFactor;
+
+      vx = (vx / len) * speed;
+      vy = (vy / len) * speed;
 
       const nx = player.x + vx;
       const ny = player.y + vy;
@@ -395,18 +414,45 @@
       });
     }
 
+    function spawnBoost() {
+      const padding = 60;
+      let x, y, tries = 0;
+      do {
+        x = padding + Math.random() * (W - padding * 2);
+        y = padding + Math.random() * (H - padding * 2);
+        tries++;
+      } while (!canMoveTo(x, y, 12) && tries < 20);
+
+      boosters.push({
+        x, y,
+        r: 11,
+        active: true
+      });
+    }
+
     function spawnAnimalsInitial() {
       animals.length = 0;
+      boosters.length = 0;
       const n = 6;
       for (let i = 0; i < n; i++) spawnAnimal();
+      // några blodhjärtan
+      for (let i = 0; i < 2; i++) spawnBoost();
     }
 
     function eatAnimal(a) {
       if (!a.active) return;
       a.active = false;
-      immuneUntil = performance.now() + 6000; // 6 sek immun
+      immuneUntil = performance.now() + 6000;
       addBlood(a.x, a.y, true);
-      playPowerup();
+      playPowerup(1);
+    }
+
+    function eatBoost(b) {
+      if (!b.active) return;
+      b.active = false;
+      speedBoostUntil = performance.now() + 6000;
+      addBlood(b.x, b.y, true);
+      playPowerup(1.4);
     }
 
     function updateAnimals() {
@@ -425,8 +471,24 @@
       }
     }
 
+    function updateBoosters() {
+      for (const b of boosters) {
+        if (!b.active) continue;
+        const dx = player.x - b.x;
+        const dy = player.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        if (dist < player.r + b.r + 3) {
+          eatBoost(b);
+        }
+      }
+      const activeBoosts = boosters.filter(b => b.active).length;
+      if (activeBoosts < 1 && Math.random() < 0.01) {
+        spawnBoost();
+      }
+    }
+
     function catchPlayer() {
-      if (gameState === "caught" || isImmune()) return;
+      if (gameState !== "playing" || isImmune()) return;
       gameState = "caught";
       addBlood(player.x, player.y, true);
       playBuzz(0);
@@ -439,8 +501,31 @@
       lastSurvival = (now - startTime) / 1000;
       if (lastSurvival > bestTime) bestTime = lastSurvival;
 
+      msgTitle.textContent = "FÅNGAD!";
       msgTime.textContent = "Du överlevde: " + lastSurvival.toFixed(1).replace(".", ",") + " sekunder.";
       msgBest.textContent = "Bästa tid: " + bestTime.toFixed(1).replace(".", ",") + " sekunder.";
+      msgExtra.textContent = "Myggan låste in dig i buren. Försök täcka allt i blod nästa gång.";
+      msgBox.style.display = "block";
+    }
+
+    function checkBloodWin() {
+      if (gameState !== "playing") return;
+      if (bloodScore >= bloodGoal) {
+        winGame();
+      }
+    }
+
+    function winGame() {
+      if (gameState !== "playing") return;
+      gameState = "won";
+      const now = performance.now();
+      lastSurvival = (now - startTime) / 1000;
+      if (lastSurvival > bestTime) bestTime = lastSurvival;
+
+      msgTitle.textContent = "DU DRÄNKTE ALLT!";
+      msgTime.textContent = "Tid: " + lastSurvival.toFixed(1).replace(".", ",") + " sekunder.";
+      msgBest.textContent = "Bästa tid: " + bestTime.toFixed(1).replace(".", ",") + " sekunder.";
+      msgExtra.textContent = "Hela spelbilden är röd och slemmig. Du vann.";
       msgBox.style.display = "block";
     }
 
@@ -482,7 +567,6 @@
         ctx.save();
         ctx.translate(a.x, a.y);
 
-        // kropp – olika för art, utan ring
         if (a.species === "råtta") {
           ctx.fillStyle = "#444";
           ctx.beginPath();
@@ -537,12 +621,37 @@
       }
     }
 
+    function drawBoosters() {
+      for (const b of boosters) {
+        if (!b.active) continue;
+        ctx.save();
+        ctx.translate(b.x, b.y);
+
+        // glödande blodhjärta
+        const t = Date.now() * 0.01;
+        const pulse = 0.6 + 0.4 * Math.sin(t);
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255,50,150,${0.6 + 0.3 * pulse})`;
+        ctx.arc(0, 0, b.r + 3 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#ff0033";
+        ctx.beginPath();
+        ctx.moveTo(0, 4);
+        ctx.bezierCurveTo(-6, -4, -4, -8, 0, -4);
+        ctx.bezierCurveTo(4, -8, 6, -4, 0, 4);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
     function drawPlayer() {
       const immune = isImmune();
       ctx.save();
       ctx.translate(player.x, player.y);
 
-      // huvud (ingen ring)
+      // huvud
       ctx.beginPath();
       ctx.fillStyle = immune ? "#e0ffe0" : "#f2dede";
       ctx.arc(0, -player.r * 0.7, player.r * 0.6, 0, Math.PI * 2);
@@ -563,7 +672,8 @@
       ctx.stroke();
 
       // kropp
-      ctx.strokeStyle = immune ? "#c0ffc0" : "#f2dede";
+      const speedColor = hasSpeedBoost() ? "#ffdd55" : (immune ? "#c0ffc0" : "#f2dede");
+      ctx.strokeStyle = speedColor;
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(0, -player.r * 0.1);
@@ -596,7 +706,6 @@
       const t = Date.now() * 0.01;
       const wingAngle = Math.sin(t * 0.7) * 0.5;
 
-      // vingar (ingen ring)
       ctx.save();
       ctx.rotate(-0.4 + wingAngle);
       ctx.beginPath();
@@ -613,19 +722,16 @@
       ctx.fill();
       ctx.restore();
 
-      // kropp
       ctx.beginPath();
       ctx.fillStyle = "#660000";
       ctx.ellipse(0, 0, mosquito.r + 2, mosquito.r - 2, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // blodmage
       ctx.beginPath();
       ctx.fillStyle = "#cc0000";
       ctx.ellipse(0, 4, mosquito.r, mosquito.r - 4, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // ögon
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.arc(-4, -4, 3, 0, Math.PI * 2);
@@ -638,7 +744,6 @@
       ctx.arc(4, -4, 1.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // snabel
       ctx.beginPath();
       ctx.strokeStyle = "#bb0000";
       ctx.lineWidth = 2;
@@ -683,6 +788,7 @@
       drawBlood();
       drawWalls();
       drawAnimals();
+      drawBoosters();
       drawPlayer();
       drawMosquito();
       drawCageOverlay();
@@ -696,9 +802,17 @@
 
       let extra;
       if (gameState === "playing") {
-        extra = isImmune()
-          ? " – IMMUN! Myggan flyr, passa på."
-          : " – Ät smådjur för några sekunders immunitet.";
+        if (bloodScore >= bloodGoal * 0.9) {
+          extra = " – Snart helt rött, fortsätt!";
+        } else if (hasSpeedBoost()) {
+          extra = " – TURBO från blodhjärta!";
+        } else if (isImmune()) {
+          extra = " – IMMUN, myggan flyr.";
+        } else {
+          extra = " – Täck hela skärmen med blod för att vinna.";
+        }
+      } else if (gameState === "won") {
+        extra = " – Du har redan vunnit. Tryck Spela igen.";
       } else {
         extra = " – Fångad. Tryck Spela igen.";
       }
@@ -711,6 +825,7 @@
         updatePlayer();
         updateMosquito();
         updateAnimals();
+        updateBoosters();
       }
     }
 
@@ -737,7 +852,7 @@
       if (e.key === "ArrowDown" || e.key === "s") dir.down = true;
       if (e.key === "ArrowLeft" || e.key === "a") dir.left = true;
       if (e.key === "ArrowRight" || e.key === "d") dir.right = true;
-      if (e.key === "r" && gameState === "caught") restart();
+      if (e.key === "r" && gameState !== "playing") restart();
     });
     window.addEventListener("keyup", (e) => {
       if (e.key === "ArrowUp" || e.key === "w") dir.up = false;
@@ -778,8 +893,11 @@
       mosquito.x = startMosquito.x;
       mosquito.y = startMosquito.y;
       immuneUntil = 0;
+      speedBoostUntil = 0;
+      bloodScore = 0;
+      buildMaze();           // bygger väggar och sätter bloodGoal + initblod
       startTime = performance.now();
-      spawnAnimalsInitial();
+      spawnAnimalsInitial(); // smådjur + blodhjärtan
     }
 
     btnRestart.addEventListener("click", () => {
@@ -793,11 +911,13 @@
       canvas.width = W;
       canvas.height = H;
       buildMaze();
-      restart();
+      spawnAnimalsInitial();
+      startTime = performance.now();
     });
 
     buildMaze();
-    restart();
+    spawnAnimalsInitial();
+    startTime = performance.now();
     loop();
   </script>
 </body>
