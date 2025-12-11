@@ -122,7 +122,7 @@
 <body>
   <div id="game">
     <canvas id="canvas"></canvas>
-    <div id="hud">Spring genom blodlabyrinten. Undvik den blodtörstiga myggan.</div>
+    <div id="hud">Spring genom blodlabyrinten. Ät smådjur för immunitet. Undvik myggan.</div>
 
     <div id="controls">
       <div class="btnDir" id="btnUp">▲</div>
@@ -133,9 +133,10 @@
 
     <div id="message">
       <h1>FÅNGAD!</h1>
-      <p>Myggan hittade dig i labyrinten.</p>
+      <p id="msgTime"></p>
+      <p id="msgBest"></p>
       <p>Du vaknar upp i en blodig bur.</p>
-      <p>Tryck på Spela igen för att försöka fly.</p>
+      <p>Ät fler smådjur nästa gång för att bli immun.</p>
       <button id="btnRestart">Spela igen</button>
     </div>
   </div>
@@ -145,6 +146,8 @@
     const ctx = canvas.getContext("2d");
     const hud = document.getElementById("hud");
     const msgBox = document.getElementById("message");
+    const msgTime = document.getElementById("msgTime");
+    const msgBest = document.getElementById("msgBest");
     const btnRestart = document.getElementById("btnRestart");
 
     let W = window.innerWidth;
@@ -160,8 +163,14 @@
 
     const walls = [];
     const bloodDrops = [];
+    const animals = [];
 
     const dir = { up: false, down: false, left: false, right: false };
+
+    let immuneUntil = 0;
+    let startTime = performance.now();
+    let bestTime = 0;
+    let lastSurvival = 0;
 
     function ensureAudio() {
       if (!audioCtx) {
@@ -181,14 +190,15 @@
 
       const maxDist = 600;
       const intensity = Math.max(0.1, 1 - distance / maxDist);
-      const freq = 200 + 800 * intensity;
+      const baseFreq = 150 + 700 * intensity;
+      const freq = isImmune() ? baseFreq * 0.5 : baseFreq;
 
       osc.type = "sawtooth";
       osc.frequency.value = freq;
 
       const now = ctxA.currentTime;
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.12 * intensity, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.1 * intensity, now + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
 
       osc.connect(gain);
@@ -207,7 +217,7 @@
       const now = ctxA.currentTime;
       osc.frequency.setValueAtTime(1500, now);
       osc.frequency.exponentialRampToValueAtTime(200, now + 0.4);
-      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.setValueAtTime(0.15, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
       osc.connect(gain);
       gain.connect(ctxA.destination);
@@ -231,6 +241,28 @@
       gain.connect(ctxA.destination);
       osc.start(now);
       osc.stop(now + 0.28);
+    }
+
+    function playPowerup() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const ctxA = audioCtx;
+      const osc = ctxA.createOscillator();
+      const gain = ctxA.createGain();
+      osc.type = "sine";
+      const now = ctxA.currentTime;
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(900, now + 0.25);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      osc.connect(gain);
+      gain.connect(ctxA.destination);
+      osc.start(now);
+      osc.stop(now + 0.27);
+    }
+
+    function isImmune() {
+      return performance.now() < immuneUntil;
     }
 
     function addBlood(x, y, big = false) {
@@ -259,26 +291,41 @@
       walls.push({ x: 0, y: 0, w: thick, h: H });
       walls.push({ x: W - thick, y: 0, w: thick, h: H });
 
-      // enkla inre väggar (labyrintkänsla)
-      const seg = Math.max(150, W / 5);
-      walls.push({ x: seg, y: thick, w: thick, h: H * 0.6 });
-      walls.push({ x: seg * 2, y: H * 0.4, w: thick, h: H * 0.6 - thick });
-      walls.push({ x: seg * 3, y: thick, w: thick, h: H * 0.7 });
-      walls.push({ x: seg * 4, y: H * 0.3, w: thick, h: H * 0.7 - thick });
+      const innerLeft = thick;
+      const innerTop = thick;
+      const innerWidth = W - thick * 2;
+      const innerHeight = H - thick * 2;
 
-      walls.push({ x: thick, y: H * 0.3, w: seg * 0.8, h: thick });
-      walls.push({ x: seg * 1.4, y: H * 0.7, w: seg * 1.4, h: thick });
-      walls.push({ x: seg * 2.2, y: H * 0.2, w: seg * 1.2, h: thick });
-      walls.push({ x: seg * 3.2, y: H * 0.5, w: seg * 1.0, h: thick });
+      const segX = innerWidth / 4;
+      const segY = innerHeight / 4;
 
-      // lite blodhögar
-      for (let i = 0; i < 12; i++) {
-        addBlood(
-          thick + 40 + Math.random() * (W - thick * 2 - 80),
-          thick + 40 + Math.random() * (H - thick * 2 - 80),
-          true
-        );
+      function addVerticalWallWithGap(col, gapRow, gapHeightCells) {
+        const x = innerLeft + segX * col;
+        const gapY = innerTop + segY * gapRow;
+        const gapH = segY * gapHeightCells;
+
+        walls.push({ x, y: innerTop, w: thick, h: gapY - innerTop });
+        walls.push({ x, y: gapY + gapH, w: thick, h: innerTop + innerHeight - (gapY + gapH) });
       }
+
+      function addHorizontalWallWithGap(row, gapCol, gapWidthCells) {
+        const y = innerTop + segY * row;
+        const gapX = innerLeft + segX * gapCol;
+        const gapW = segX * gapWidthCells;
+
+        walls.push({ x: innerLeft, y, w: gapX - innerLeft, h: thick });
+        walls.push({ x: gapX + gapW, y, w: innerLeft + innerWidth - (gapX + gapW), h: thick });
+      }
+
+      // tre vertikala väggar med öppningar
+      addVerticalWallWithGap(1, 1, 1.5);
+      addVerticalWallWithGap(2, 0.5, 1.2);
+      addVerticalWallWithGap(3, 2, 1.4);
+
+      // tre horisontella väggar med öppningar
+      addHorizontalWallWithGap(1, 2, 1.2);
+      addHorizontalWallWithGap(2, 0.6, 1.0);
+      addHorizontalWallWithGap(3, 2.1, 0.9);
     }
 
     function circleRectCollision(cx, cy, cr, rect) {
@@ -321,10 +368,17 @@
       const dx = player.x - mosquito.x;
       const dy = player.y - mosquito.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const step = mosquito.speed;
+      let step = mosquito.speed;
 
-      let vx = (dx / dist) * step;
-      let vy = (dy / dist) * step;
+      let vx, vy;
+      if (isImmune()) {
+        // flyr från spelaren när du är immun
+        vx = (-dx / dist) * step * 1.2;
+        vy = (-dy / dist) * step * 1.2;
+      } else {
+        vx = (dx / dist) * step;
+        vy = (dy / dist) * step;
+      }
 
       const nx = mosquito.x + vx;
       const ny = mosquito.y + vy;
@@ -332,13 +386,65 @@
       if (canMoveTo(nx, mosquito.y, mosquito.r)) mosquito.x = nx;
       if (canMoveTo(mosquito.x, ny, mosquito.r)) mosquito.y = ny;
 
-      if (dist < player.r + mosquito.r + 4) {
+      if (!isImmune() && dist < player.r + mosquito.r + 4) {
         catchPlayer();
       }
     }
 
+    function spawnAnimal() {
+      const padding = 60;
+      let x, y, tries = 0;
+      do {
+        x = padding + Math.random() * (W - padding * 2);
+        y = padding + Math.random() * (H - padding * 2);
+        tries++;
+      } while (!canMoveTo(x, y, 10) && tries < 20);
+
+      const speciesList = ["råtta", "groda", "kråka", "fladdermus"];
+      const species = speciesList[Math.floor(Math.random() * speciesList.length)];
+
+      animals.push({
+        x, y,
+        r: 10,
+        species,
+        active: true
+      });
+    }
+
+    function spawnAnimalsInitial() {
+      animals.length = 0;
+      const n = 6;
+      for (let i = 0; i < n; i++) spawnAnimal();
+    }
+
+    function eatAnimal(a) {
+      if (!a.active) return;
+      a.active = false;
+      immuneUntil = performance.now() + 6000; // 6 sek immun
+      addBlood(a.x, a.y, true);
+      playPowerup();
+    }
+
+    function updateAnimals() {
+      const now = performance.now();
+      for (const a of animals) {
+        if (!a.active) continue;
+        const dx = player.x - a.x;
+        const dy = player.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        if (dist < player.r + a.r + 3) {
+          eatAnimal(a);
+        }
+      }
+      // se till att det alltid finns några aktiva smådjur
+      const activeCount = animals.filter(a => a.active).length;
+      if (activeCount < 3 && Math.random() < 0.02) {
+        spawnAnimal();
+      }
+    }
+
     function catchPlayer() {
-      if (gameState === "caught") return;
+      if (gameState === "caught" || isImmune()) return;
       gameState = "caught";
       addBlood(player.x, player.y, true);
       playBuzz(0);
@@ -346,8 +452,14 @@
       playCageHit();
       document.body.classList.add("cageFlash");
       setTimeout(() => document.body.classList.remove("cageFlash"), 500);
+
+      const now = performance.now();
+      lastSurvival = (now - startTime) / 1000;
+      if (lastSurvival > bestTime) bestTime = lastSurvival;
+
+      msgTime.textContent = "Du överlevde: " + lastSurvival.toFixed(1).replace(".", ",") + " sekunder.";
+      msgBest.textContent = "Bästa tid: " + bestTime.toFixed(1).replace(".", ",") + " sekunder.";
       msgBox.style.display = "block";
-      hud.textContent = "Du sitter i en blodig bur. Tryck Spela igen.";
     }
 
     function drawBackground() {
@@ -382,21 +494,90 @@
       }
     }
 
+    function drawAnimals() {
+      for (const a of animals) {
+        if (!a.active) continue;
+        ctx.save();
+        ctx.translate(a.x, a.y);
+
+        // blodig aura
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255,0,0,0.6)";
+        ctx.lineWidth = 2;
+        ctx.arc(0, 0, a.r + 4, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // kropp – lite olika beroende på art
+        if (a.species === "råtta") {
+          ctx.fillStyle = "#444";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, a.r + 2, a.r, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#000";
+          ctx.beginPath();
+          ctx.arc(4, -3, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#900";
+          ctx.beginPath();
+          ctx.moveTo(-a.r, 2);
+          ctx.lineTo(-a.r - 6, 4);
+          ctx.stroke();
+        } else if (a.species === "groda") {
+          ctx.fillStyle = "#225500";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, a.r, a.r * 0.8, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#bbffbb";
+          ctx.beginPath();
+          ctx.arc(-4, -4, 2, 0, Math.PI * 2);
+          ctx.arc(4, -4, 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (a.species === "kråka") {
+          ctx.fillStyle = "#111111";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, a.r + 3, a.r - 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffcc00";
+          ctx.beginPath();
+          ctx.moveTo(2, -2);
+          ctx.lineTo(8, 0);
+          ctx.lineTo(2, 2);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // fladdermus
+          ctx.fillStyle = "#222222";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, a.r, a.r - 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(-a.r, 0);
+          ctx.quadraticCurveTo(-a.r * 0.5, -8, 0, 0);
+          ctx.quadraticCurveTo(a.r * 0.5, -8, a.r, 0);
+          ctx.lineTo(0, 0);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+    }
+
     function drawPlayer() {
-      // kropp: blek figur
+      const immune = isImmune();
       ctx.save();
       ctx.translate(player.x, player.y);
 
-      // blodring runt
+      // blodring / immunitet
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(255,0,0,0.6)";
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = immune ? "rgba(0,255,150,0.9)" : "rgba(255,0,0,0.6)";
+      ctx.lineWidth = immune ? 4 : 3;
       ctx.arc(0, 0, player.r + 4, 0, Math.PI * 2);
       ctx.stroke();
 
       // huvud
       ctx.beginPath();
-      ctx.fillStyle = "#f2dede";
+      ctx.fillStyle = immune ? "#e0ffe0" : "#f2dede";
       ctx.arc(0, -player.r * 0.7, player.r * 0.6, 0, Math.PI * 2);
       ctx.fill();
 
@@ -407,15 +588,20 @@
       ctx.arc(4, -player.r * 0.8, 2, 0, Math.PI * 2);
       ctx.fill();
 
-      // mun (rädd)
+      // mun
       ctx.beginPath();
-      ctx.strokeStyle = "#900";
+      ctx.strokeStyle = immune ? "#0a0" : "#900";
       ctx.lineWidth = 1.5;
-      ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
+      if (immune) {
+        // liten sjuk smile
+        ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
+      } else {
+        ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
+      }
       ctx.stroke();
 
       // kropp
-      ctx.strokeStyle = "#f2dede";
+      ctx.strokeStyle = immune ? "#c0ffc0" : "#f2dede";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(0, -player.r * 0.1);
@@ -450,7 +636,7 @@
 
       // blodgloria
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(255,0,0,0.9)";
+      ctx.strokeStyle = isImmune() ? "rgba(150,0,0,0.7)" : "rgba(255,0,0,0.9)";
       ctx.lineWidth = 2;
       ctx.arc(0, 0, mosquito.r + 10, 0, Math.PI * 2);
       ctx.stroke();
@@ -541,21 +727,42 @@
       drawBackground();
       drawBlood();
       drawWalls();
+      drawAnimals();
       drawPlayer();
       drawMosquito();
       drawCageOverlay();
+    }
+
+    function updateHudText() {
+      const now = performance.now();
+      const t = (gameState === "playing") ? (now - startTime) / 1000 : lastSurvival;
+      const tStr = t.toFixed(1).replace(".", ",");
+      const bestStr = bestTime.toFixed(1).replace(".", ",");
+
+      let extra;
+      if (gameState === "playing") {
+        extra = isImmune()
+          ? " – IMMUN! Myggan flyr, passa på."
+          : " – Ät smådjur (råtta, groda, kråka, fladdermus) för några sekunders immunitet.";
+      } else {
+        extra = " – Fångad. Tryck Spela igen.";
+      }
+
+      hud.textContent = `Tid: ${tStr} s | Rekord: ${bestStr} s${extra}`;
     }
 
     function update() {
       if (gameState === "playing") {
         updatePlayer();
         updateMosquito();
+        updateAnimals();
       }
     }
 
     function loop() {
       update();
       draw();
+      updateHudText();
       requestAnimationFrame(loop);
     }
 
@@ -566,7 +773,7 @@
       const dy = player.y - mosquito.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
       playBuzz(dist);
-      if (Math.random() < 0.1 && dist < 350) playScreech();
+      if (!isImmune() && Math.random() < 0.1 && dist < 350) playScreech();
     }, 350);
 
     // input – tangentbord
@@ -616,7 +823,9 @@
       player.y = 80;
       mosquito.x = W - 80;
       mosquito.y = H - 80;
-      hud.textContent = "Spring genom blodlabyrinten. Undvik den blodtörstiga myggan.";
+      immuneUntil = 0;
+      startTime = performance.now();
+      spawnAnimalsInitial();
     }
 
     btnRestart.addEventListener("click", () => {
@@ -630,9 +839,11 @@
       canvas.width = W;
       canvas.height = H;
       buildMaze();
+      spawnAnimalsInitial();
     });
 
     buildMaze();
+    spawnAnimalsInitial();
     loop();
   </script>
 </body>
