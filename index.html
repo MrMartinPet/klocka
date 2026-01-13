@@ -1,924 +1,421 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <title>Blodlabyrinten – Myggskräcken</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=no" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f7fb" />
+  <title>PIA-räknare</title>
   <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#12141a;
+      --muted:#6c7380;
+      --line:#e2e6ee;
+      --accent:#2f6bff;
+      --accent-soft:#e8efff;
+      --danger:#e5484d;
+      --radius:18px;
+      --shadow:0 12px 28px rgba(16,24,40,.08);
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: radial-gradient(circle at top, #550000 0, #020005 60%);
-      color: #eee;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
     }
-    #game {
-      position: relative;
-      width: 100%;
-      height: 100%;
+    header{
+      position:sticky; top:0; z-index:10;
+      background:rgba(246,247,251,.92);
+      backdrop-filter:saturate(140%) blur(12px);
+      border-bottom:1px solid var(--line);
     }
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-      touch-action: none;
-    }
-    #hud {
-      position: absolute;
-      top: 6px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 4px 10px;
-      background: rgba(0,0,0,0.6);
-      border-radius: 999px;
-      font-size: 12px;
-      text-align: center;
-      z-index: 10;
-      max-width: 95%;
-      pointer-events: none;
-    }
-    #controls {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 170px;
-      height: 150px;
-      z-index: 20;
-    }
-    .btnDir {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      background: rgba(0,0,0,0.6);
-      border-radius: 999px;
-      border: 1px solid rgba(255,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fdd;
-      font-size: 20px;
-      user-select: none;
-    }
-    .btnDir:active {
-      background: rgba(200,0,0,0.9);
-    }
-    #btnUp   { left: 60px; top: 0; }
-    #btnDown { left: 60px; top: 100px; }
-    #btnLeft { left: 10px; top: 50px; }
-    #btnRight{ left: 110px; top: 50px; }
+    .wrap{max-width:1040px; margin:0 auto; padding:18px 16px 24px}
+    h1{margin:0; font-size:20px; font-weight:700; letter-spacing:.2px}
+    .grid{display:grid; gap:16px}
+    @media (min-width:900px){ .grid{grid-template-columns: 1.2fr .8fr} }
 
-    #message {
-      position: absolute;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 20px 25px;
-      background: rgba(0,0,0,0.9);
-      border: 2px solid #900;
-      border-radius: 10px;
-      text-align: center;
-      z-index: 30;
-      max-width: 80%;
-      display: none;
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
     }
-    #message h1 {
-      margin: 0 0 10px;
-      font-size: 24px;
-      color: #ff3333;
+    .card h2{margin:0 0 12px; font-size:16px}
+
+    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
+    input, button{font:inherit}
+    input{
+      width:100%;
+      padding:14px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#fbfcff;
+      color:var(--text);
     }
-    #message p {
-      margin: 4px 0;
-      font-size: 14px;
+    input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+
+    .row{display:grid; gap:12px}
+    @media (min-width:560px){ .row{grid-template-columns: 1fr 1fr} }
+
+    .area-grid{
+      display:grid;
+      gap:10px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
-    #message button {
-      margin-top: 12px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(135deg, #ff0000, #ff8800);
-      color: #111;
-      font-size: 14px;
-      cursor: pointer;
+    .area-btn{
+      padding:16px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#f9faff;
+      color:var(--text);
+      text-align:left;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .15s ease;
+    }
+    .area-btn small{display:block; margin-top:6px; font-weight:500; color:var(--muted)}
+    .area-btn.active{
+      border-color:var(--accent);
+      background:var(--accent-soft);
+      color:#0b1b4d;
+      box-shadow:0 8px 20px rgba(47,107,255,.15);
     }
 
-    body.cageFlash {
-      animation: cageFlash 0.5s linear;
+    .btn-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:12px}
+    .btn{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px 18px;
+      font-weight:700;
+      cursor:pointer;
+      background:#f3f5fb;
+      color:var(--text);
     }
+    .btn.primary{background:var(--accent); border-color:var(--accent); color:white}
+    .btn.danger{background:var(--danger); border-color:var(--danger); color:white}
 
-    @keyframes cageFlash {
-      0%   { filter: none; }
-      25%  { filter: hue-rotate(90deg) brightness(1.5); }
-      50%  { filter: invert(1) contrast(1.4); }
-      100% { filter: none; }
+    .list{
+      display:flex; flex-direction:column; gap:10px; margin-top:16px;
+      max-height:52vh; overflow:auto; padding-right:4px;
+    }
+    .item{
+      display:grid; grid-template-columns: 1fr auto; gap:12px;
+      border:1px solid var(--line); border-radius:16px; padding:12px 14px;
+      background:#fbfcff; align-items:center;
+    }
+    .item .meta{display:flex; flex-direction:column; gap:4px}
+    .item .tag{font-size:12px; color:var(--muted)}
+    .item .num{font-size:18px; font-weight:800}
+
+    .kpi{display:grid; gap:12px; grid-template-columns: 1fr 1fr}
+    .kpi .box{border:1px solid var(--line); border-radius:16px; padding:14px; background:#fbfcff}
+    .kpi .lbl{font-size:12px; color:var(--muted)}
+    .kpi .val{font-size:20px; font-weight:800; margin-top:6px}
+
+    .totals{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+    .total-row{
+      display:flex; align-items:center; justify-content:space-between;
+      border:1px solid var(--line); border-radius:14px; padding:10px 12px;
+      background:#fbfcff; font-size:14px;
     }
   </style>
 </head>
 <body>
-  <div id="game">
-    <canvas id="canvas"></canvas>
-    <div id="hud">Spring, ät smådjur för immunitet, hitta blodhjärtan för TURBO, täck allt i blod.</div>
-
-    <div id="controls">
-      <div class="btnDir" id="btnUp">▲</div>
-      <div class="btnDir" id="btnDown">▼</div>
-      <div class="btnDir" id="btnLeft">◀</div>
-      <div class="btnDir" id="btnRight">▶</div>
-    </div>
-
-    <div id="message">
-      <h1 id="msgTitle">FÅNGAD!</h1>
-      <p id="msgTime"></p>
-      <p id="msgBest"></p>
-      <p id="msgExtra"></p>
-      <button id="btnRestart">Spela igen</button>
-    </div>
+<header>
+  <div class="wrap">
+    <h1>PIA-räknare</h1>
   </div>
+</header>
 
-  <script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const hud = document.getElementById("hud");
-    const msgBox = document.getElementById("message");
-    const msgTitle = document.getElementById("msgTitle");
-    const msgTime = document.getElementById("msgTime");
-    const msgBest = document.getElementById("msgBest");
-    const msgExtra = document.getElementById("msgExtra");
-    const btnRestart = document.getElementById("btnRestart");
+<main class="wrap">
+  <div class="grid">
+    <section class="card">
+      <h2>Ny post</h2>
 
-    let W = window.innerWidth;
-    let H = window.innerHeight;
-    canvas.width = W;
-    canvas.height = H;
+      <div class="row">
+        <div>
+          <label for="date">Datum</label>
+          <input id="date" type="date" />
+        </div>
+        <div>
+          <label for="value">Värde</label>
+          <input id="value" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999" />
+        </div>
+      </div>
 
-    let audioCtx = null;
-    let gameState = "playing"; // "playing" | "caught" | "won"
+      <div style="margin-top:14px">
+        <label>Kategori</label>
+        <div class="area-grid" id="areaButtons"></div>
+      </div>
 
-    const player = { x: 80, y: 80, r: 14, baseSpeed: 2.4 };
-    const mosquito = { x: 300, y: 200, r: 12, speed: 2.1 };
+      <div class="btn-row">
+        <button class="btn primary" id="addBtn">Lägg till</button>
+        <button class="btn" id="exportBtn">Exportera CSV</button>
+      </div>
 
-    const walls = [];
-    const bloodDrops = [];
-    const animals = [];
-    const boosters = []; // blodhjärtan / turbo-pickups
+      <div class="list" id="list"></div>
+    </section>
 
-    const dir = { up: false, down: false, left: false, right: false };
+    <section class="card">
+      <h2>Summering</h2>
 
-    let immuneUntil = 0;
-    let speedBoostUntil = 0;
-    let startTime = performance.now();
-    let bestTime = 0;
-    let lastSurvival = 0;
+      <div class="kpi">
+        <div class="box">
+          <div class="lbl">Total PIA</div>
+          <div class="val" id="grandTotal">0</div>
+        </div>
+        <div class="box">
+          <div class="lbl">Antal poster</div>
+          <div class="val" id="countTotal">0</div>
+        </div>
+      </div>
 
-    let startPlayer = { x: 0, y: 0 };
-    let startMosquito = { x: 0, y: 0 };
+      <div class="totals" id="areaTotals"></div>
 
-    let bloodScore = 0;
-    let bloodGoal = 0; // sätts utifrån skärmstorlek
+      <div class="btn-row">
+        <button class="btn danger" id="clearBtn">Rensa all data</button>
+      </div>
+    </section>
+  </div>
+</main>
 
-    function ensureAudio() {
-      if (!audioCtx) {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (AC) {
-          audioCtx = new AC();
-        }
-      }
+<script>
+(() => {
+  const AREAS = [
+    { stage: "Efter formning, inför limning",        flow: "Flöde 1 Limhjul" },
+    { stage: "Efter formning, inför limning",        flow: "Flöde 2 Byrå+ H-lim" },
+    { stage: "Efter formning inför bearbetning",     flow: "Flöde 1 Limhjul" },
+    { stage: "Efter formning inför bearbetning",     flow: "Flöde 2 Byrå+ H-lim" },
+    { stage: "Efter bearbetning inför limning",      flow: "Flöde 1 Limhjul" },
+    { stage: "Efter bearbetning inför limning",      flow: "Flöde 2 Byrå+ H-lim" },
+    { stage: "Efter limning, inför fräsning",        flow: "Flöde 1 Limhjul" },
+    { stage: "Efter limning, inför fräsning",        flow: "Flöde 2 Byrå+ H-lim" },
+    { stage: "Efter fräsning inför montering",       flow: "Flöde 1 Limhjul" },
+    { stage: "Efter fräsning inför montering",       flow: "Flöde 2 Byrå+ H-lim" },
+    { stage: "Efter fräsning inför lastning",        flow: "Flöde 1 Limhjul" },
+    { stage: "Efter fräsning inför lastning",        flow: "Flöde 2 Byrå+ H-lim" },
+  ].map((a, idx) => ({ ...a, id: String(idx+1).padStart(2, "0") }));
+
+  const STORE_KEY = "pia_app_v2";
+  const $ = (id) => document.getElementById(id);
+
+  const elDate = $("date");
+  const elValue = $("value");
+  const elAdd = $("addBtn");
+  const elList = $("list");
+  const elAreaButtons = $("areaButtons");
+  const elTotals = $("areaTotals");
+  const elGrandTotal = $("grandTotal");
+  const elCountTotal = $("countTotal");
+  const elExport = $("exportBtn");
+  const elClear = $("clearBtn");
+
+  let entries = [];
+  let selectedAreaId = AREAS[0]?.id ?? "";
+
+  function nowIsoDate() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function areaLabel(areaId) {
+    const a = AREAS.find(x => x.id === areaId);
+    if (!a) return "Okänt";
+    return `${a.stage} — ${a.flow}`;
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      entries = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(entries)) entries = [];
+    } catch {
+      entries = [];
     }
+  }
 
-    function playBuzz(distance) {
-      ensureAudio();
-      if (!audioCtx) return;
-      const ctxA = audioCtx;
-      const osc = ctxA.createOscillator();
-      const gain = ctxA.createGain();
+  function save() {
+    localStorage.setItem(STORE_KEY, JSON.stringify(entries));
+  }
 
-      const maxDist = 600;
-      const intensity = Math.max(0.1, 1 - distance / maxDist);
-      const baseFreq = 150 + 700 * intensity;
-      const freq = isImmune() ? baseFreq * 0.5 : baseFreq;
+  function sanitizeValue(v) {
+    const s = String(v ?? "").trim();
+    if (!/^\d{1,3}$/.test(s)) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
 
-      osc.type = "sawtooth";
-      osc.frequency.value = freq;
+  function uid() {
+    return (crypto?.randomUUID?.() || `id_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+  }
 
-      const now = ctxA.currentTime;
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.1 * intensity, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+  function renderAreaButtons() {
+    elAreaButtons.innerHTML = AREAS.map((a) => {
+      const active = a.id === selectedAreaId ? "active" : "";
+      return `
+        <button class="area-btn ${active}" data-area="${a.id}">
+          ${a.stage}
+          <small>${a.flow}</small>
+        </button>
+      `;
+    }).join("");
 
-      osc.connect(gain);
-      gain.connect(ctxA.destination);
-      osc.start(now);
-      osc.stop(now + 0.23);
-    }
-
-    function playScreech() {
-      ensureAudio();
-      if (!audioCtx) return;
-      const ctxA = audioCtx;
-      const osc = ctxA.createOscillator();
-      const gain = ctxA.createGain();
-      osc.type = "square";
-      const now = ctxA.currentTime;
-      osc.frequency.setValueAtTime(1500, now);
-      osc.frequency.exponentialRampToValueAtTime(200, now + 0.4);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
-      osc.connect(gain);
-      gain.connect(ctxA.destination);
-      osc.start(now);
-      osc.stop(now + 0.45);
-    }
-
-    function playCageHit() {
-      ensureAudio();
-      if (!audioCtx) return;
-      const ctxA = audioCtx;
-      const osc = ctxA.createOscillator();
-      const gain = ctxA.createGain();
-      osc.type = "triangle";
-      const now = ctxA.currentTime;
-      osc.frequency.setValueAtTime(80, now);
-      osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
-      gain.gain.setValueAtTime(0.3, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-      osc.connect(gain);
-      gain.connect(ctxA.destination);
-      osc.start(now);
-      osc.stop(now + 0.28);
-    }
-
-    function playPowerup(pitch = 1) {
-      ensureAudio();
-      if (!audioCtx) return;
-      const ctxA = audioCtx;
-      const osc = ctxA.createOscillator();
-      const gain = ctxA.createGain();
-      osc.type = "sine";
-      const now = ctxA.currentTime;
-      osc.frequency.setValueAtTime(300 * pitch, now);
-      osc.frequency.exponentialRampToValueAtTime(900 * pitch, now + 0.25);
-      gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-      osc.connect(gain);
-      gain.connect(ctxA.destination);
-      osc.start(now);
-      osc.stop(now + 0.27);
-    }
-
-    function isImmune() {
-      return performance.now() < immuneUntil;
-    }
-    function hasSpeedBoost() {
-      return performance.now() < speedBoostUntil;
-    }
-
-    function addBlood(x, y, big = false) {
-      const amount = big ? 8 : 3;
-      for (let i = 0; i < amount; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = (big ? 40 : 18) * Math.random();
-        const bx = x + Math.cos(angle) * dist;
-        const by = y + Math.sin(angle) * dist;
-        const r = big ? 5 + Math.random() * 6 : 2 + Math.random() * 3;
-        bloodDrops.push({
-          x: bx,
-          y: by,
-          r: r,
-          alpha: big ? 0.9 : 0.7
-        });
-        // grov approximation av täckning
-        const areaApprox = Math.PI * r * r * 0.5;
-        bloodScore += areaApprox;
-      }
-      checkBloodWin();
-    }
-
-    function buildMaze() {
-      walls.length = 0;
-      const thick = 20;
-
-      // bara yttre väggar
-      walls.push({ x: 0, y: 0, w: W, h: thick });
-      walls.push({ x: 0, y: H - thick, w: W, h: thick });
-      walls.push({ x: 0, y: 0, w: thick, h: H });
-      walls.push({ x: W - thick, y: 0, w: thick, h: H });
-
-      // blodfläckar
-      bloodDrops.length = 0;
-      bloodScore = 0;
-      for (let i = 0; i < 12; i++) {
-        const bx = thick + 40 + Math.random() * (W - thick * 2 - 80);
-        const by = thick + 40 + Math.random() * (H - thick * 2 - 80);
-        addBlood(bx, by, true);
-      }
-
-      // goal = ca 70% av ytan täckt
-      bloodGoal = W * H * 0.7;
-
-      // startpositioner (hörn-diagonal)
-      startPlayer.x = thick + 60;
-      startPlayer.y = H - thick - 60;
-
-      startMosquito.x = W - thick - 60;
-      startMosquito.y = thick + 60;
-    }
-
-    function circleRectCollision(cx, cy, cr, rect) {
-      const closestX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
-      const closestY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
-      const dx = cx - closestX;
-      const dy = cy - closestY;
-      return (dx * dx + dy * dy) < cr * cr;
-    }
-
-    function canMoveTo(x, y, r) {
-      for (const w of walls) {
-        if (circleRectCollision(x, y, r, w)) return false;
-      }
-      return true;
-    }
-
-    function updatePlayer() {
-      let vx = 0, vy = 0;
-      if (dir.up) vy -= 1;
-      if (dir.down) vy += 1;
-      if (dir.left) vx -= 1;
-      if (dir.right) vx += 1;
-      if (vx === 0 && vy === 0) return;
-
-      const len = Math.sqrt(vx * vx + vy * vy) || 1;
-      const speedFactor = hasSpeedBoost() ? 1.9 : 1;
-      const speed = player.baseSpeed * speedFactor;
-
-      vx = (vx / len) * speed;
-      vy = (vy / len) * speed;
-
-      const nx = player.x + vx;
-      const ny = player.y + vy;
-
-      if (canMoveTo(nx, player.y, player.r)) player.x = nx;
-      if (canMoveTo(player.x, ny, player.r)) player.y = ny;
-
-      addBlood(player.x, player.y, false);
-    }
-
-    function updateMosquito() {
-      const dx = player.x - mosquito.x;
-      const dy = player.y - mosquito.y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      let step = mosquito.speed;
-
-      let vx, vy;
-      if (isImmune()) {
-        vx = (-dx / dist) * step * 1.2;
-        vy = (-dy / dist) * step * 1.2;
-      } else {
-        vx = (dx / dist) * step;
-        vy = (dy / dist) * step;
-      }
-
-      const nx = mosquito.x + vx;
-      const ny = mosquito.y + vy;
-
-      if (canMoveTo(nx, mosquito.y, mosquito.r)) mosquito.x = nx;
-      if (canMoveTo(mosquito.x, ny, mosquito.r)) mosquito.y = ny;
-
-      if (!isImmune() && dist < player.r + mosquito.r + 4) {
-        catchPlayer();
-      }
-    }
-
-    function spawnAnimal() {
-      const padding = 60;
-      let x, y, tries = 0;
-      do {
-        x = padding + Math.random() * (W - padding * 2);
-        y = padding + Math.random() * (H - padding * 2);
-        tries++;
-      } while (!canMoveTo(x, y, 10) && tries < 20);
-
-      const speciesList = ["råtta", "groda", "kråka", "fladdermus"];
-      const species = speciesList[Math.floor(Math.random() * speciesList.length)];
-
-      animals.push({
-        x, y,
-        r: 10,
-        species,
-        active: true
+    elAreaButtons.querySelectorAll("[data-area]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedAreaId = btn.getAttribute("data-area");
+        renderAreaButtons();
       });
+    });
+  }
+
+  function addEntry() {
+    const date = elDate.value || nowIsoDate();
+    const value = sanitizeValue(elValue.value);
+    if (!date) return alert("Välj datum.");
+    if (!selectedAreaId) return alert("Välj kategori.");
+    if (value === null) return alert("Värde måste vara 0–999.");
+
+    entries.push({ id: uid(), ts: Date.now(), date, areaId: selectedAreaId, value });
+    save();
+    elValue.value = "";
+    elValue.focus();
+    render();
+  }
+
+  function deleteEntry(id) {
+    const ix = entries.findIndex(e => e.id === id);
+    if (ix >= 0) {
+      entries.splice(ix, 1);
+      save();
+      render();
+    }
+  }
+
+  function clearAll() {
+    const ok = confirm("Rensa all data? Detta går inte att ångra.");
+    if (!ok) return;
+    entries = [];
+    save();
+    render();
+  }
+
+  function renderList() {
+    const list = entries.slice().sort((a, b) => b.ts - a.ts);
+    if (list.length === 0) {
+      elList.innerHTML = `<div class="item"><div class="meta"><div class="tag">Inga poster ännu.</div></div></div>`;
+      return;
     }
 
-    function spawnBoost() {
-      const padding = 60;
-      let x, y, tries = 0;
-      do {
-        x = padding + Math.random() * (W - padding * 2);
-        y = padding + Math.random() * (H - padding * 2);
-        tries++;
-      } while (!canMoveTo(x, y, 12) && tries < 20);
+    elList.innerHTML = list.map(e => `
+      <div class="item">
+        <div class="meta">
+          <div>${areaLabel(e.areaId)}</div>
+          <div class="tag">${e.date}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px">
+          <div class="num">${e.value}</div>
+          <button class="btn" data-del="${e.id}">Radera</button>
+        </div>
+      </div>
+    `).join("");
 
-      boosters.push({
-        x, y,
-        r: 11,
-        active: true
+    elList.querySelectorAll("[data-del]").forEach(btn => {
+      btn.addEventListener("click", () => deleteEntry(btn.getAttribute("data-del")));
+    });
+  }
+
+  function computeTotals() {
+    const totalsByArea = new Map();
+    let grand = 0;
+    for (const e of entries) {
+      totalsByArea.set(e.areaId, (totalsByArea.get(e.areaId) || 0) + e.value);
+      grand += e.value;
+    }
+    return { totalsByArea, grand };
+  }
+
+  function renderTotals() {
+    const { totalsByArea, grand } = computeTotals();
+    elGrandTotal.textContent = grand;
+    elCountTotal.textContent = entries.length;
+
+    const rows = AREAS.map(a => ({ a, sum: totalsByArea.get(a.id) || 0 }))
+      .filter(row => row.sum > 0);
+
+    if (rows.length === 0) {
+      elTotals.innerHTML = `<div class="total-row"><span>Inga data</span><strong>0</strong></div>`;
+      return;
+    }
+
+    elTotals.innerHTML = rows.map(({ a, sum }) => `
+      <div class="total-row">
+        <span>${a.flow}</span>
+        <strong>${sum}</strong>
+      </div>
+    `).join("");
+  }
+
+  function render() {
+    renderAreaButtons();
+    renderList();
+    renderTotals();
+  }
+
+  function toCsvSemicolon(rows) {
+    const esc = (s) => {
+      const str = String(s ?? "");
+      if (/[;"\n\r]/.test(str)) return `"${str.replaceAll('"','""')}"`;
+      return str;
+    };
+    return rows.map(r => r.map(esc).join(";")).join("\r\n");
+  }
+
+  function exportCsv() {
+    const header = ["Datum", "Område", "Flöde", "Värde"];
+    const rows = entries
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date) || a.areaId.localeCompare(b.areaId))
+      .map(e => {
+        const a = AREAS.find(x => x.id === e.areaId);
+        return [e.date, a?.stage ?? "", a?.flow ?? "", e.value];
       });
-    }
 
-    function spawnAnimalsInitial() {
-      animals.length = 0;
-      boosters.length = 0;
-      const n = 6;
-      for (let i = 0; i < n; i++) spawnAnimal();
-      // några blodhjärtan
-      for (let i = 0; i < 2; i++) spawnBoost();
-    }
+    const csv = toCsvSemicolon([header, ...rows]);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
 
-    function eatAnimal(a) {
-      if (!a.active) return;
-      a.active = false;
-      immuneUntil = performance.now() + 6000;
-      addBlood(a.x, a.y, true);
-      playPowerup(1);
-    }
+    const link = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 19).replaceAll(":", "-");
+    link.href = url;
+    link.download = `PIA_${stamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
 
-    function eatBoost(b) {
-      if (!b.active) return;
-      b.active = false;
-      speedBoostUntil = performance.now() + 6000;
-      addBlood(b.x, b.y, true);
-      playPowerup(1.4);
-    }
+  function init() {
+    load();
+    elDate.value = nowIsoDate();
 
-    function updateAnimals() {
-      for (const a of animals) {
-        if (!a.active) continue;
-        const dx = player.x - a.x;
-        const dy = player.y - a.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        if (dist < player.r + a.r + 3) {
-          eatAnimal(a);
-        }
-      }
-      const activeCount = animals.filter(a => a.active).length;
-      if (activeCount < 3 && Math.random() < 0.02) {
-        spawnAnimal();
-      }
-    }
+    render();
 
-    function updateBoosters() {
-      for (const b of boosters) {
-        if (!b.active) continue;
-        const dx = player.x - b.x;
-        const dy = player.y - b.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        if (dist < player.r + b.r + 3) {
-          eatBoost(b);
-        }
-      }
-      const activeBoosts = boosters.filter(b => b.active).length;
-      if (activeBoosts < 1 && Math.random() < 0.01) {
-        spawnBoost();
-      }
-    }
-
-    function catchPlayer() {
-      if (gameState !== "playing" || isImmune()) return;
-      gameState = "caught";
-      addBlood(player.x, player.y, true);
-      playBuzz(0);
-      playScreech();
-      playCageHit();
-      document.body.classList.add("cageFlash");
-      setTimeout(() => document.body.classList.remove("cageFlash"), 500);
-
-      const now = performance.now();
-      lastSurvival = (now - startTime) / 1000;
-      if (lastSurvival > bestTime) bestTime = lastSurvival;
-
-      msgTitle.textContent = "FÅNGAD!";
-      msgTime.textContent = "Du överlevde: " + lastSurvival.toFixed(1).replace(".", ",") + " sekunder.";
-      msgBest.textContent = "Bästa tid: " + bestTime.toFixed(1).replace(".", ",") + " sekunder.";
-      msgExtra.textContent = "Myggan låste in dig i buren. Försök täcka allt i blod nästa gång.";
-      msgBox.style.display = "block";
-    }
-
-    function checkBloodWin() {
-      if (gameState !== "playing") return;
-      if (bloodScore >= bloodGoal) {
-        winGame();
-      }
-    }
-
-    function winGame() {
-      if (gameState !== "playing") return;
-      gameState = "won";
-      const now = performance.now();
-      lastSurvival = (now - startTime) / 1000;
-      if (lastSurvival > bestTime) bestTime = lastSurvival;
-
-      msgTitle.textContent = "DU DRÄNKTE ALLT!";
-      msgTime.textContent = "Tid: " + lastSurvival.toFixed(1).replace(".", ",") + " sekunder.";
-      msgBest.textContent = "Bästa tid: " + bestTime.toFixed(1).replace(".", ",") + " sekunder.";
-      msgExtra.textContent = "Hela spelbilden är röd och slemmig. Du vann.";
-      msgBox.style.display = "block";
-    }
-
-    function drawBackground() {
-      const grad = ctx.createRadialGradient(
-        W * 0.5, H * 0.3, 50,
-        W * 0.5, H * 0.5, Math.max(W, H)
-      );
-      grad.addColorStop(0, "#330000");
-      grad.addColorStop(0.4, "#220000");
-      grad.addColorStop(1, "#020003");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
-    }
-
-    function drawBlood() {
-      for (let i = 0; i < bloodDrops.length; i++) {
-        const b = bloodDrops[i];
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(180,0,0,${b.alpha})`;
-        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function drawWalls() {
-      ctx.fillStyle = "#190000";
-      ctx.strokeStyle = "#550000";
-      ctx.lineWidth = 2;
-      for (const w of walls) {
-        ctx.fillRect(w.x, w.y, w.w, w.h);
-        ctx.strokeRect(w.x, w.y, w.w, w.h);
-      }
-    }
-
-    function drawAnimals() {
-      for (const a of animals) {
-        if (!a.active) continue;
-        ctx.save();
-        ctx.translate(a.x, a.y);
-
-        if (a.species === "råtta") {
-          ctx.fillStyle = "#444";
-          ctx.beginPath();
-          ctx.ellipse(0, 0, a.r + 2, a.r, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#000";
-          ctx.beginPath();
-          ctx.arc(4, -3, 1.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#900";
-          ctx.beginPath();
-          ctx.moveTo(-a.r, 2);
-          ctx.lineTo(-a.r - 6, 4);
-          ctx.stroke();
-        } else if (a.species === "groda") {
-          ctx.fillStyle = "#225500";
-          ctx.beginPath();
-          ctx.ellipse(0, 0, a.r, a.r * 0.8, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#bbffbb";
-          ctx.beginPath();
-          ctx.arc(-4, -4, 2, 0, Math.PI * 2);
-          ctx.arc(4, -4, 2, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (a.species === "kråka") {
-          ctx.fillStyle = "#111111";
-          ctx.beginPath();
-          ctx.ellipse(0, 0, a.r + 3, a.r - 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#ffcc00";
-          ctx.beginPath();
-          ctx.moveTo(2, -2);
-          ctx.lineTo(8, 0);
-          ctx.lineTo(2, 2);
-          ctx.closePath();
-          ctx.fill();
-        } else {
-          ctx.fillStyle = "#222222";
-          ctx.beginPath();
-          ctx.ellipse(0, 0, a.r, a.r - 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.moveTo(-a.r, 0);
-          ctx.quadraticCurveTo(-a.r * 0.5, -8, 0, 0);
-          ctx.quadraticCurveTo(a.r * 0.5, -8, a.r, 0);
-          ctx.lineTo(0, 0);
-          ctx.closePath();
-          ctx.fill();
-        }
-
-        ctx.restore();
-      }
-    }
-
-    function drawBoosters() {
-      for (const b of boosters) {
-        if (!b.active) continue;
-        ctx.save();
-        ctx.translate(b.x, b.y);
-
-        // glödande blodhjärta
-        const t = Date.now() * 0.01;
-        const pulse = 0.6 + 0.4 * Math.sin(t);
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(255,50,150,${0.6 + 0.3 * pulse})`;
-        ctx.arc(0, 0, b.r + 3 * pulse, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#ff0033";
-        ctx.beginPath();
-        ctx.moveTo(0, 4);
-        ctx.bezierCurveTo(-6, -4, -4, -8, 0, -4);
-        ctx.bezierCurveTo(4, -8, 6, -4, 0, 4);
-        ctx.fill();
-
-        ctx.restore();
-      }
-    }
-
-    function drawPlayer() {
-      const immune = isImmune();
-      ctx.save();
-      ctx.translate(player.x, player.y);
-
-      // huvud
-      ctx.beginPath();
-      ctx.fillStyle = immune ? "#e0ffe0" : "#f2dede";
-      ctx.arc(0, -player.r * 0.7, player.r * 0.6, 0, Math.PI * 2);
-      ctx.fill();
-
-      // ögon
-      ctx.fillStyle = "#000";
-      ctx.beginPath();
-      ctx.arc(-4, -player.r * 0.8, 2, 0, Math.PI * 2);
-      ctx.arc(4, -player.r * 0.8, 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // mun
-      ctx.beginPath();
-      ctx.strokeStyle = immune ? "#0a0" : "#900";
-      ctx.lineWidth = 1.5;
-      ctx.arc(0, -player.r * 0.4, 4, 0, Math.PI);
-      ctx.stroke();
-
-      // kropp
-      const speedColor = hasSpeedBoost() ? "#ffdd55" : (immune ? "#c0ffc0" : "#f2dede");
-      ctx.strokeStyle = speedColor;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, -player.r * 0.1);
-      ctx.lineTo(0, player.r * 0.9);
-      ctx.stroke();
-
-      // armar
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-player.r, player.r * 0.3);
-      ctx.moveTo(0, 0);
-      ctx.lineTo(player.r, player.r * 0.3);
-      ctx.stroke();
-
-      // ben
-      ctx.beginPath();
-      ctx.moveTo(0, player.r * 0.9);
-      ctx.lineTo(-player.r * 0.7, player.r * 1.7);
-      ctx.moveTo(0, player.r * 0.9);
-      ctx.lineTo(player.r * 0.7, player.r * 1.7);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function drawMosquito() {
-      ctx.save();
-      ctx.translate(mosquito.x, mosquito.y);
-
-      const t = Date.now() * 0.01;
-      const wingAngle = Math.sin(t * 0.7) * 0.5;
-
-      ctx.save();
-      ctx.rotate(-0.4 + wingAngle);
-      ctx.beginPath();
-      ctx.fillStyle = "rgba(200,200,255,0.4)";
-      ctx.ellipse(-4, -mosquito.r - 6, 5, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.save();
-      ctx.rotate(0.4 - wingAngle);
-      ctx.beginPath();
-      ctx.fillStyle = "rgba(200,200,255,0.4)";
-      ctx.ellipse(4, -mosquito.r - 6, 5, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.beginPath();
-      ctx.fillStyle = "#660000";
-      ctx.ellipse(0, 0, mosquito.r + 2, mosquito.r - 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.fillStyle = "#cc0000";
-      ctx.ellipse(0, 4, mosquito.r, mosquito.r - 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(-4, -4, 3, 0, Math.PI * 2);
-      ctx.arc(4, -4, 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#000000";
-      ctx.beginPath();
-      ctx.arc(-4, -4, 1.5, 0, Math.PI * 2);
-      ctx.arc(4, -4, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.strokeStyle = "#bb0000";
-      ctx.lineWidth = 2;
-      ctx.moveTo(0, -1);
-      ctx.lineTo(0, -mosquito.r - 6);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function drawCageOverlay() {
-      if (gameState !== "caught") return;
-      ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.7)";
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.strokeStyle = "rgba(180,180,180,0.7)";
-      ctx.lineWidth = 4;
-
-      const bars = 10;
-      for (let i = 0; i <= bars; i++) {
-        const x = (W / bars) * i;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, H);
-        ctx.stroke();
-      }
-
-      for (let j = 0; j < 4; j++) {
-        const y = (H / 4) * j;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(W, y);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-
-    function draw() {
-      drawBackground();
-      drawBlood();
-      drawWalls();
-      drawAnimals();
-      drawBoosters();
-      drawPlayer();
-      drawMosquito();
-      drawCageOverlay();
-    }
-
-    function updateHudText() {
-      const now = performance.now();
-      const t = (gameState === "playing") ? (now - startTime) / 1000 : lastSurvival;
-      const tStr = t.toFixed(1).replace(".", ",");
-      const bestStr = bestTime.toFixed(1).replace(".", ",");
-
-      let extra;
-      if (gameState === "playing") {
-        if (bloodScore >= bloodGoal * 0.9) {
-          extra = " – Snart helt rött, fortsätt!";
-        } else if (hasSpeedBoost()) {
-          extra = " – TURBO från blodhjärta!";
-        } else if (isImmune()) {
-          extra = " – IMMUN, myggan flyr.";
-        } else {
-          extra = " – Täck hela skärmen med blod för att vinna.";
-        }
-      } else if (gameState === "won") {
-        extra = " – Du har redan vunnit. Tryck Spela igen.";
-      } else {
-        extra = " – Fångad. Tryck Spela igen.";
-      }
-
-      hud.textContent = `Tid: ${tStr} s | Rekord: ${bestStr} s${extra}`;
-    }
-
-    function update() {
-      if (gameState === "playing") {
-        updatePlayer();
-        updateMosquito();
-        updateAnimals();
-        updateBoosters();
-      }
-    }
-
-    function loop() {
-      update();
-      draw();
-      updateHudText();
-      requestAnimationFrame(loop);
-    }
-
-    setInterval(() => {
-      if (gameState !== "playing") return;
-      const dx = player.x - mosquito.x;
-      const dy = player.y - mosquito.y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      playBuzz(dist);
-      if (!isImmune() && Math.random() < 0.1 && dist < 350) playScreech();
-    }, 350);
-
-    // tangentbord
-    window.addEventListener("keydown", (e) => {
-      ensureAudio();
-      if (e.key === "ArrowUp" || e.key === "w") dir.up = true;
-      if (e.key === "ArrowDown" || e.key === "s") dir.down = true;
-      if (e.key === "ArrowLeft" || e.key === "a") dir.left = true;
-      if (e.key === "ArrowRight" || e.key === "d") dir.right = true;
-      if (e.key === "r" && gameState !== "playing") restart();
+    elAdd.addEventListener("click", addEntry);
+    elValue.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addEntry();
     });
-    window.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowUp" || e.key === "w") dir.up = false;
-      if (e.key === "ArrowDown" || e.key === "s") dir.down = false;
-      if (e.key === "ArrowLeft" || e.key === "a") dir.left = false;
-      if (e.key === "ArrowRight" || e.key === "d") dir.right = false;
-    });
+    elExport.addEventListener("click", exportCsv);
+    elClear.addEventListener("click", clearAll);
+  }
 
-    // touch / mobilkontroller
-    function setupTouchButton(id, prop) {
-      const el = document.getElementById(id);
-      const start = (ev) => {
-        ev.preventDefault();
-        ensureAudio();
-        dir[prop] = true;
-      };
-      const end = (ev) => {
-        ev.preventDefault();
-        dir[prop] = false;
-      };
-      el.addEventListener("touchstart", start);
-      el.addEventListener("touchend", end);
-      el.addEventListener("touchcancel", end);
-      el.addEventListener("mousedown", start);
-      window.addEventListener("mouseup", end);
-    }
-
-    setupTouchButton("btnUp", "up");
-    setupTouchButton("btnDown", "down");
-    setupTouchButton("btnLeft", "left");
-    setupTouchButton("btnRight", "right");
-
-    function restart() {
-      gameState = "playing";
-      msgBox.style.display = "none";
-      player.x = startPlayer.x;
-      player.y = startPlayer.y;
-      mosquito.x = startMosquito.x;
-      mosquito.y = startMosquito.y;
-      immuneUntil = 0;
-      speedBoostUntil = 0;
-      bloodScore = 0;
-      buildMaze();           // bygger väggar och sätter bloodGoal + initblod
-      startTime = performance.now();
-      spawnAnimalsInitial(); // smådjur + blodhjärtan
-    }
-
-    btnRestart.addEventListener("click", () => {
-      ensureAudio();
-      restart();
-    });
-
-    window.addEventListener("resize", () => {
-      W = window.innerWidth;
-      H = window.innerHeight;
-      canvas.width = W;
-      canvas.height = H;
-      buildMaze();
-      spawnAnimalsInitial();
-      startTime = performance.now();
-    });
-
-    buildMaze();
-    spawnAnimalsInitial();
-    startTime = performance.now();
-    loop();
-  </script>
+  init();
+})();
+</script>
 </body>
 </html>
