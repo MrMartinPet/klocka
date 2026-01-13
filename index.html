@@ -3,360 +3,231 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#111111" />
+  <meta name="theme-color" content="#f6f7fb" />
   <title>PIA-räknare</title>
   <style>
     :root{
-      --bg:#0f1115; --card:#151923; --muted:#9aa3b2; --text:#eef2ff;
-      --line:#252b3a; --accent:#7aa2ff; --bad:#ff6b6b; --good:#3ddc97;
-      --shadow: 0 10px 25px rgba(0,0,0,.35);
-      --r:16px;
-      --pad:14px;
-      --max:980px;
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#12141a;
+      --muted:#6c7380;
+      --line:#e2e6ee;
+      --accent:#2f6bff;
+      --accent-soft:#e8efff;
+      --danger:#e5484d;
+      --radius:18px;
+      --shadow:0 12px 28px rgba(16,24,40,.08);
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box}
     body{
-      margin:0; background:linear-gradient(180deg,#0d0f14 0%, #0f1115 50%, #0b0d12 100%);
-      color:var(--text); font-family:var(--font);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      margin:0;
+      font-family:var(--font);
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
     }
     header{
       position:sticky; top:0; z-index:10;
-      background:rgba(15,17,21,.85); backdrop-filter:saturate(140%) blur(10px);
+      background:rgba(246,247,251,.92);
+      backdrop-filter:saturate(140%) blur(12px);
       border-bottom:1px solid var(--line);
     }
-    .wrap{max-width:var(--max); margin:0 auto; padding:12px 12px 18px}
-    .titleRow{display:flex; gap:12px; align-items:center; justify-content:space-between}
-    h1{font-size:18px; margin:0; letter-spacing:.2px}
-    .sub{font-size:12px; color:var(--muted); margin-top:2px}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px; border:1px solid var(--line);
-      border-radius:999px; background:rgba(21,25,35,.7);
-      color:var(--text); font-size:12px;
-    }
-    .pill b{font-weight:600}
-    .grid{display:grid; gap:12px}
-    @media (min-width:760px){ .grid{grid-template-columns: 1.1fr .9fr} }
+    .wrap{max-width:1040px; margin:0 auto; padding:18px 16px 24px}
+    h1{margin:0; font-size:20px; font-weight:700; letter-spacing:.2px}
+    .grid{display:grid; gap:16px}
+    @media (min-width:900px){ .grid{grid-template-columns: 1.2fr .8fr} }
 
     .card{
-      background:rgba(21,25,35,.82);
+      background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--r);
+      border-radius:var(--radius);
       box-shadow:var(--shadow);
-      overflow:hidden;
+      padding:18px;
     }
-    .cardHead{
-      padding:12px var(--pad);
-      border-bottom:1px solid var(--line);
-      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-    }
-    .cardHead h2{font-size:14px; margin:0}
-    .cardHead .hint{font-size:12px; color:var(--muted); margin-top:2px}
-    .cardBody{padding:12px var(--pad)}
-    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
-    input, select, button{
-      font:inherit;
-    }
-    input, select{
-      width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#0e1118;
-      color:var(--text);
-      outline:none;
-    }
-    input:focus, select:focus{border-color:rgba(122,162,255,.8); box-shadow:0 0 0 3px rgba(122,162,255,.15)}
-    .row{display:grid; gap:10px}
-    @media (min-width:520px){ .row{grid-template-columns: 1fr 1.6fr 1fr} }
-    .row2{display:grid; gap:10px}
-    @media (min-width:520px){ .row2{grid-template-columns: 1fr 1fr} }
+    .card h2{margin:0 0 12px; font-size:16px}
 
-    .btnRow{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px}
-    button{
+    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
+    input, button{font:inherit}
+    input{
+      width:100%;
+      padding:14px 14px;
+      border-radius:14px;
       border:1px solid var(--line);
-      background:#121726;
+      background:#fbfcff;
       color:var(--text);
-      padding:12px 12px;
-      border-radius:12px;
+    }
+    input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+
+    .row{display:grid; gap:12px}
+    @media (min-width:560px){ .row{grid-template-columns: 1fr 1fr} }
+
+    .area-grid{
+      display:grid;
+      gap:10px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .area-btn{
+      padding:16px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#f9faff;
+      color:var(--text);
+      text-align:left;
+      font-weight:600;
       cursor:pointer;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
+      transition:all .15s ease;
     }
-    button.primary{background:linear-gradient(180deg,#2a4cff 0%, #1730b8 100%); border-color:rgba(122,162,255,.55)}
-    button.danger{background:linear-gradient(180deg,#ff4d4d 0%, #b21f1f 100%); border-color:rgba(255,107,107,.55)}
-    button.ghost{background:transparent}
-    button:active{transform:translateY(1px)}
-    .tiny{font-size:12px; color:var(--muted); line-height:1.4}
-    .kpi{
-      display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+    .area-btn small{display:block; margin-top:6px; font-weight:500; color:var(--muted)}
+    .area-btn.active{
+      border-color:var(--accent);
+      background:var(--accent-soft);
+      color:#0b1b4d;
+      box-shadow:0 8px 20px rgba(47,107,255,.15);
     }
-    .kpi .box{
-      background:#0e1118; border:1px solid var(--line); border-radius:14px;
-      padding:12px;
+
+    .btn-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:12px}
+    .btn{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px 18px;
+      font-weight:700;
+      cursor:pointer;
+      background:#f3f5fb;
+      color:var(--text);
     }
-    .kpi .box .lbl{color:var(--muted); font-size:12px}
-    .kpi .box .val{font-size:18px; margin-top:4px; font-weight:650}
-    .kpi .box .val small{font-size:12px; color:var(--muted); font-weight:500}
+    .btn.primary{background:var(--accent); border-color:var(--accent); color:white}
+    .btn.danger{background:var(--danger); border-color:var(--danger); color:white}
 
     .list{
-      display:flex; flex-direction:column; gap:8px; margin-top:10px;
-      max-height:52vh; overflow:auto; padding-right:2px;
+      display:flex; flex-direction:column; gap:10px; margin-top:16px;
+      max-height:52vh; overflow:auto; padding-right:4px;
     }
     .item{
-      display:grid; grid-template-columns: 1fr auto; gap:10px;
-      background:#0e1118; border:1px solid var(--line); border-radius:14px;
-      padding:10px 10px;
-      align-items:center;
+      display:grid; grid-template-columns: 1fr auto; gap:12px;
+      border:1px solid var(--line); border-radius:16px; padding:12px 14px;
+      background:#fbfcff; align-items:center;
     }
     .item .meta{display:flex; flex-direction:column; gap:4px}
-    .item .meta .top{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
-    .tag{
-      font-size:11px; color:var(--muted);
-      border:1px solid var(--line);
-      padding:2px 8px; border-radius:999px;
-      background:rgba(21,25,35,.55);
-      white-space:nowrap;
-    }
-    .num{
-      font-weight:750; font-size:16px;
-    }
-    .muted{color:var(--muted)}
-    .hr{height:1px; background:var(--line); margin:10px 0}
-    details{border-top:1px solid var(--line)}
-    summary{
-      list-style:none; cursor:pointer; padding:12px var(--pad);
+    .item .tag{font-size:12px; color:var(--muted)}
+    .item .num{font-size:18px; font-weight:800}
+
+    .kpi{display:grid; gap:12px; grid-template-columns: 1fr 1fr}
+    .kpi .box{border:1px solid var(--line); border-radius:16px; padding:14px; background:#fbfcff}
+    .kpi .lbl{font-size:12px; color:var(--muted)}
+    .kpi .val{font-size:20px; font-weight:800; margin-top:6px}
+
+    .totals{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+    .total-row{
       display:flex; align-items:center; justify-content:space-between;
-      user-select:none;
-    }
-    summary::-webkit-details-marker{display:none}
-    .sumLeft{display:flex; flex-direction:column; gap:2px}
-    .sumLeft b{font-size:13px}
-    .sumLeft span{font-size:12px; color:var(--muted)}
-    .sumRight{display:flex; align-items:center; gap:10px}
-    .sumRight .tot{font-weight:750}
-    .chev{color:var(--muted)}
-    .footerPad{height:18px}
-    .warn{
-      padding:8px 10px; border-radius:12px;
-      border:1px dashed rgba(255,107,107,.6);
-      background:rgba(255,107,107,.08);
-      color:#ffd7d7; font-size:12px; line-height:1.35;
-      margin-top:10px;
-    }
-    .ok{
-      padding:8px 10px; border-radius:12px;
-      border:1px dashed rgba(61,220,151,.55);
-      background:rgba(61,220,151,.08);
-      color:#d6fff0; font-size:12px; line-height:1.35;
-      margin-top:10px;
+      border:1px solid var(--line); border-radius:14px; padding:10px 12px;
+      background:#fbfcff; font-size:14px;
     }
   </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="titleRow">
-      <div>
-        <h1>PIA-räknare</h1>
-        <div class="sub">Offline; autosparar lokalt i mobilen/datorn</div>
-      </div>
-      <div class="pill" id="savePill" title="Autosparstatus">
-        <b id="saveState">Sparad</b><span class="muted" id="saveTime">–</span>
-      </div>
-    </div>
+    <h1>PIA-räknare</h1>
   </div>
 </header>
 
 <main class="wrap">
   <div class="grid">
-
-    <!-- Inmatning -->
     <section class="card">
-      <div class="cardHead">
+      <h2>Ny post</h2>
+
+      <div class="row">
         <div>
-          <h2>Registrera post</h2>
-          <div class="hint">Välj datum, område, skriv ett värde (1–3 siffror); tryck Lägg till</div>
+          <label for="date">Datum</label>
+          <input id="date" type="date" />
+        </div>
+        <div>
+          <label for="value">Värde</label>
+          <input id="value" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999" />
         </div>
       </div>
-      <div class="cardBody">
-        <div class="row">
-          <div>
-            <label for="date">Datum</label>
-            <input id="date" type="date" />
-          </div>
-          <div>
-            <label for="area">Område</label>
-            <select id="area"></select>
-          </div>
-          <div>
-            <label for="value">Värde</label>
-            <input id="value" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="t.ex. 12" />
-          </div>
-        </div>
 
-        <div class="btnRow">
-          <button class="primary" id="addBtn">Lägg till</button>
-          <button class="ghost" id="wakeBtn" title="Försöker hålla skärmen vaken där webbläsaren stödjer det">Håll skärmen vaken: AV</button>
-          <button class="ghost" id="exportBtn">Exportera CSV (Excel)</button>
-        </div>
-
-        <div class="row2" style="margin-top:10px">
-          <div>
-            <label for="filterDate">Filter: datum</label>
-            <input id="filterDate" type="date" />
-          </div>
-          <div>
-            <label for="filterArea">Filter: område</label>
-            <select id="filterArea"></select>
-          </div>
-        </div>
-
-        <div class="list" id="list"></div>
-
-        <div class="warn" id="iosNote" style="display:none">
-          OBS: iOS/Safari kan ibland ignorera varningsrutor vid stängning/omladdning. Appen autosparar ändå, så inget försvinner även om skärmen låser.
-        </div>
+      <div style="margin-top:14px">
+        <label>Kategori</label>
+        <div class="area-grid" id="areaButtons"></div>
       </div>
+
+      <div class="btn-row">
+        <button class="btn primary" id="addBtn">Lägg till</button>
+        <button class="btn" id="exportBtn">Exportera CSV</button>
+      </div>
+
+      <div class="list" id="list"></div>
     </section>
 
-    <!-- Summering -->
     <section class="card">
-      <div class="cardHead">
-        <div>
-          <h2>Summering</h2>
-          <div class="hint">Summering per område; längst ned totalen för allt</div>
+      <h2>Summering</h2>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="lbl">Total PIA</div>
+          <div class="val" id="grandTotal">0</div>
         </div>
-        <div class="sumRight">
-          <span class="tag" id="countTag">0 poster</span>
+        <div class="box">
+          <div class="lbl">Antal poster</div>
+          <div class="val" id="countTotal">0</div>
         </div>
       </div>
-      <div class="cardBody">
 
-        <div class="kpi">
-          <div class="box">
-            <div class="lbl">Total PIA</div>
-            <div class="val" id="grandTotal">0 <small>st</small></div>
-          </div>
-          <div class="box">
-            <div class="lbl">Unika datum</div>
-            <div class="val" id="uniqueDates">0 <small>st</small></div>
-          </div>
-        </div>
+      <div class="totals" id="areaTotals"></div>
 
-        <div class="hr"></div>
-
-        <div id="areaTotals"></div>
-
-        <div class="hr"></div>
-
-        <div class="btnRow">
-          <button class="danger" id="clearBtn" title="Raderar allt lokalt sparat">Rensa all data</button>
-          <button class="ghost" id="sampleBtn" title="Lägger in ett par exempelrader">Lägg in testdata</button>
-        </div>
-
-        <div class="tiny" style="margin-top:10px">
-          Exportformat: <span class="muted">Datum;Område;Flöde;Värde</span> (semikolon, passar Excel i svensk miljö).
-        </div>
-
-        <div class="ok" id="wakeInfo" style="display:none"></div>
+      <div class="btn-row">
+        <button class="btn danger" id="clearBtn">Rensa all data</button>
       </div>
-
-      <details>
-        <summary>
-          <div class="sumLeft">
-            <b>Tips</b>
-            <span>Snabb användning i produktion</span>
-          </div>
-          <div class="chev">▼</div>
-        </summary>
-        <div class="cardBody" style="padding-top:0">
-          <ul class="tiny" style="margin:0; padding-left:18px">
-            <li>Sätt datum en gång; lägg sedan bara till värden.</li>
-            <li>Skärmlås är OK: allt autosparas och finns kvar när du låser upp.</li>
-            <li>“Håll skärmen vaken” fungerar i vissa Android/Chrome-lägen; iOS stöd är begränsat.</li>
-            <li>Excel-diagram: importera CSV och gör pivot/diagram per område och datum.</li>
-          </ul>
-        </div>
-      </details>
     </section>
-
   </div>
-  <div class="footerPad"></div>
 </main>
 
 <script>
 (() => {
-  // ====== Konfiguration ======
   const AREAS = [
     { stage: "Efter formning, inför limning",        flow: "Flöde 1 Limhjul" },
     { stage: "Efter formning, inför limning",        flow: "Flöde 2 Byrå+ H-lim" },
-
     { stage: "Efter formning inför bearbetning",     flow: "Flöde 1 Limhjul" },
     { stage: "Efter formning inför bearbetning",     flow: "Flöde 2 Byrå+ H-lim" },
-
     { stage: "Efter bearbetning inför limning",      flow: "Flöde 1 Limhjul" },
     { stage: "Efter bearbetning inför limning",      flow: "Flöde 2 Byrå+ H-lim" },
-
     { stage: "Efter limning, inför fräsning",        flow: "Flöde 1 Limhjul" },
     { stage: "Efter limning, inför fräsning",        flow: "Flöde 2 Byrå+ H-lim" },
-
     { stage: "Efter fräsning inför montering",       flow: "Flöde 1 Limhjul" },
     { stage: "Efter fräsning inför montering",       flow: "Flöde 2 Byrå+ H-lim" },
-
     { stage: "Efter fräsning inför lastning",        flow: "Flöde 1 Limhjul" },
     { stage: "Efter fräsning inför lastning",        flow: "Flöde 2 Byrå+ H-lim" },
-  ].map((a, idx) => ({ ...a, id: String(idx+1).padStart(2,"0") }));
+  ].map((a, idx) => ({ ...a, id: String(idx+1).padStart(2, "0") }));
 
-  const STORE_KEY = "pia_app_v1";
+  const STORE_KEY = "pia_app_v2";
   const $ = (id) => document.getElementById(id);
 
   const elDate = $("date");
-  const elArea = $("area");
   const elValue = $("value");
   const elAdd = $("addBtn");
   const elList = $("list");
-  const elFilterDate = $("filterDate");
-  const elFilterArea = $("filterArea");
+  const elAreaButtons = $("areaButtons");
   const elTotals = $("areaTotals");
   const elGrandTotal = $("grandTotal");
-  const elUniqueDates = $("uniqueDates");
-  const elCountTag = $("countTag");
+  const elCountTotal = $("countTotal");
   const elExport = $("exportBtn");
   const elClear = $("clearBtn");
-  const elSample = $("sampleBtn");
-  const elSaveState = $("saveState");
-  const elSaveTime = $("saveTime");
-  const elWakeBtn = $("wakeBtn");
-  const elWakeInfo = $("wakeInfo");
-  const elIosNote = $("iosNote");
 
-  // ====== Data ======
-  /** @type {{ id:string, ts:number, date:string, areaId:string, value:number }[]} */
   let entries = [];
-  let wakeLock = null;
+  let selectedAreaId = AREAS[0]?.id ?? "";
 
   function nowIsoDate() {
     const d = new Date();
-    const pad = (n) => String(n).padStart(2,"0");
+    const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
 
   function areaLabel(areaId) {
     const a = AREAS.find(x => x.id === areaId);
-    if (!a) return "Okänt område";
+    if (!a) return "Okänt";
     return `${a.stage} — ${a.flow}`;
-  }
-
-  function setSavedUI(stateText) {
-    elSaveState.textContent = stateText;
-    const t = new Date();
-    const hh = String(t.getHours()).padStart(2,"0");
-    const mm = String(t.getMinutes()).padStart(2,"0");
-    const ss = String(t.getSeconds()).padStart(2,"0");
-    elSaveTime.textContent = `${hh}:${mm}:${ss}`;
   }
 
   function load() {
@@ -367,40 +238,50 @@
     } catch {
       entries = [];
     }
-    setSavedUI("Sparad");
   }
 
   function save() {
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(entries));
-      setSavedUI("Sparad");
-    } catch {
-      setSavedUI("Ej sparad");
-      alert("Kunde inte spara lokalt. Kontrollera lagringsutrymme i webbläsaren.");
-    }
+    localStorage.setItem(STORE_KEY, JSON.stringify(entries));
   }
 
   function sanitizeValue(v) {
     const s = String(v ?? "").trim();
     if (!/^\d{1,3}$/.test(s)) return null;
     const n = Number(s);
-    if (!Number.isFinite(n)) return null;
-    return n;
+    return Number.isFinite(n) ? n : null;
   }
 
   function uid() {
     return (crypto?.randomUUID?.() || `id_${Date.now()}_${Math.random().toString(16).slice(2)}`);
   }
 
+  function renderAreaButtons() {
+    elAreaButtons.innerHTML = AREAS.map((a) => {
+      const active = a.id === selectedAreaId ? "active" : "";
+      return `
+        <button class="area-btn ${active}" data-area="${a.id}">
+          ${a.stage}
+          <small>${a.flow}</small>
+        </button>
+      `;
+    }).join("");
+
+    elAreaButtons.querySelectorAll("[data-area]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedAreaId = btn.getAttribute("data-area");
+        renderAreaButtons();
+      });
+    });
+  }
+
   function addEntry() {
     const date = elDate.value || nowIsoDate();
-    const areaId = elArea.value;
     const value = sanitizeValue(elValue.value);
     if (!date) return alert("Välj datum.");
-    if (!areaId) return alert("Välj område.");
-    if (value === null) return alert("Värde måste vara 1–3 siffror (0–999).");
+    if (!selectedAreaId) return alert("Välj kategori.");
+    if (value === null) return alert("Värde måste vara 0–999.");
 
-    entries.push({ id: uid(), ts: Date.now(), date, areaId, value });
+    entries.push({ id: uid(), ts: Date.now(), date, areaId: selectedAreaId, value });
     save();
     elValue.value = "";
     elValue.focus();
@@ -424,131 +305,71 @@
     render();
   }
 
-  function addSample() {
-    if (entries.length > 0) {
-      const ok = confirm("Det finns redan data. Lägga till testdata ändå?");
-      if (!ok) return;
-    }
-    const d = nowIsoDate();
-    const pick = (id, val, offDays=0) => {
-      const dt = new Date(d);
-      dt.setDate(dt.getDate()+offDays);
-      const dd = dt.toISOString().slice(0,10);
-      entries.push({ id: uid(), ts: Date.now(), date: dd, areaId: id, value: val });
-    };
-    pick("01", 12, 0);
-    pick("02", 9, 0);
-    pick("07", 18, 1);
-    pick("10", 6, 1);
-    save();
-    render();
-  }
-
-  function getFilteredEntries() {
-    const fd = elFilterDate.value;
-    const fa = elFilterArea.value;
-    return entries
-      .filter(e => !fd || e.date === fd)
-      .filter(e => !fa || e.areaId === fa)
-      .sort((a,b) => b.ts - a.ts);
-  }
-
-  function computeTotals() {
-    const totalsByArea = new Map(); // areaId -> sum
-    let grand = 0;
-    const dates = new Set();
-
-    for (const e of entries) {
-      totalsByArea.set(e.areaId, (totalsByArea.get(e.areaId) || 0) + e.value);
-      grand += e.value;
-      dates.add(e.date);
-    }
-    return { totalsByArea, grand, uniqueDates: dates.size };
-  }
-
   function renderList() {
-    const list = getFilteredEntries();
+    const list = entries.slice().sort((a, b) => b.ts - a.ts);
     if (list.length === 0) {
-      elList.innerHTML = `<div class="tiny muted">Inga poster för filtret.</div>`;
+      elList.innerHTML = `<div class="item"><div class="meta"><div class="tag">Inga poster ännu.</div></div></div>`;
       return;
     }
 
-    const html = list.map(e => {
-      const a = AREAS.find(x => x.id === e.areaId);
-      const stage = a?.stage || "Okänt";
-      const flow = a?.flow || "Okänt";
-      return `
-        <div class="item">
-          <div class="meta">
-            <div class="top">
-              <span class="tag">${e.date}</span>
-              <span class="tag">${flow}</span>
-            </div>
-            <div class="muted" style="font-size:12px; line-height:1.25">${stage}</div>
-          </div>
-          <div style="display:flex; align-items:center; gap:10px">
-            <div class="num">${e.value}</div>
-            <button class="ghost" data-del="${e.id}" title="Radera">🗑️</button>
-          </div>
+    elList.innerHTML = list.map(e => `
+      <div class="item">
+        <div class="meta">
+          <div>${areaLabel(e.areaId)}</div>
+          <div class="tag">${e.date}</div>
         </div>
-      `;
-    }).join("");
-
-    elList.innerHTML = html;
+        <div style="display:flex; align-items:center; gap:10px">
+          <div class="num">${e.value}</div>
+          <button class="btn" data-del="${e.id}">Radera</button>
+        </div>
+      </div>
+    `).join("");
 
     elList.querySelectorAll("[data-del]").forEach(btn => {
       btn.addEventListener("click", () => deleteEntry(btn.getAttribute("data-del")));
     });
   }
 
+  function computeTotals() {
+    const totalsByArea = new Map();
+    let grand = 0;
+    for (const e of entries) {
+      totalsByArea.set(e.areaId, (totalsByArea.get(e.areaId) || 0) + e.value);
+      grand += e.value;
+    }
+    return { totalsByArea, grand };
+  }
+
   function renderTotals() {
-    const { totalsByArea, grand, uniqueDates } = computeTotals();
-    elGrandTotal.innerHTML = `${grand} <small>st</small>`;
-    elUniqueDates.innerHTML = `${uniqueDates} <small>st</small>`;
-    elCountTag.textContent = `${entries.length} poster`;
+    const { totalsByArea, grand } = computeTotals();
+    elGrandTotal.textContent = grand;
+    elCountTotal.textContent = entries.length;
 
-    // Sortera totals: högst först
-    const rows = AREAS
-      .map(a => ({ a, sum: totalsByArea.get(a.id) || 0 }))
-      .sort((x,y) => y.sum - x.sum);
+    const rows = AREAS.map(a => ({ a, sum: totalsByArea.get(a.id) || 0 }))
+      .filter(row => row.sum > 0);
 
-    const html = rows.map(({a,sum}) => `
-      <div class="item" style="grid-template-columns: 1fr auto">
-        <div class="meta">
-          <div class="top">
-            <span class="tag">${a.flow}</span>
-          </div>
-          <div class="muted" style="font-size:12px; line-height:1.25">${a.stage}</div>
-        </div>
-        <div class="num">${sum}</div>
+    if (rows.length === 0) {
+      elTotals.innerHTML = `<div class="total-row"><span>Inga data</span><strong>0</strong></div>`;
+      return;
+    }
+
+    elTotals.innerHTML = rows.map(({ a, sum }) => `
+      <div class="total-row">
+        <span>${a.flow}</span>
+        <strong>${sum}</strong>
       </div>
     `).join("");
-
-    elTotals.innerHTML = html || `<div class="tiny muted">Ingen data än.</div>`;
   }
 
   function render() {
+    renderAreaButtons();
     renderList();
     renderTotals();
   }
 
-  function populateSelects() {
-    // Area select
-    elArea.innerHTML = AREAS.map(a =>
-      `<option value="${a.id}">${a.stage} — ${a.flow}</option>`
-    ).join("");
-
-    // Filter area select
-    elFilterArea.innerHTML = `<option value="">(alla)</option>` + AREAS.map(a =>
-      `<option value="${a.id}">${a.stage} — ${a.flow}</option>`
-    ).join("");
-  }
-
-  // ====== Export CSV ======
   function toCsvSemicolon(rows) {
     const esc = (s) => {
       const str = String(s ?? "");
-      // Excel + semikolon: om innehåller ; " eller radbrytning, citera och dubbla "
       if (/[;"\n\r]/.test(str)) return `"${str.replaceAll('"','""')}"`;
       return str;
     };
@@ -556,11 +377,10 @@
   }
 
   function exportCsv() {
-    // Exportera ALLA entries (inte filter) för Excel-diagram/pivot.
-    const header = ["Datum","Område","Flöde","Värde"];
+    const header = ["Datum", "Område", "Flöde", "Värde"];
     const rows = entries
       .slice()
-      .sort((a,b) => a.date.localeCompare(b.date) || a.areaId.localeCompare(b.areaId) || (a.ts-b.ts))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.areaId.localeCompare(b.areaId))
       .map(e => {
         const a = AREAS.find(x => x.id === e.areaId);
         return [e.date, a?.stage ?? "", a?.flow ?? "", e.value];
@@ -570,95 +390,19 @@
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    const stamp = new Date().toISOString().slice(0,19).replaceAll(":","-");
-    a.href = url;
-    a.download = `PIA_${stamp}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const link = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 19).replaceAll(":", "-");
+    link.href = url;
+    link.download = `PIA_${stamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  // ====== Förhindra oavsiktlig stängning / omladdning ======
-  // OBS: iOS/Safari kan ignorera detta ibland; autosave gör att data ändå är kvar.
-  let hasUnsaved = false;
-
-  function markDirty() {
-    hasUnsaved = true;
-    elSaveState.textContent = "Sparar…";
-  }
-
-  // Vi sparar direkt vid ändring av entries, så "dirty" är mest för varningsruta.
-  window.addEventListener("beforeunload", (e) => {
-    // Alltid varna (önskemål), men vissa browsers visar endast generisk text.
-    e.preventDefault();
-    e.returnValue = "";
-    return "";
-  });
-
-  // Försök minska "back" som råkar lämna sidan
-  (function lockHistory() {
-    try {
-      history.pushState({ pia: true }, "", location.href);
-      window.addEventListener("popstate", () => {
-        // triggas när användaren försöker backa ut
-        const ok = confirm("Lämna sidan? (Data är sparad, men du kan råka stänga arbetet.)");
-        if (!ok) history.pushState({ pia: true }, "", location.href);
-      });
-    } catch {}
-  })();
-
-  // ====== Wake Lock (håll skärmen vaken) ======
-  async function toggleWakeLock() {
-    const supported = "wakeLock" in navigator;
-    if (!supported) {
-      elWakeInfo.style.display = "block";
-      elWakeInfo.textContent = "Wake Lock stöds inte i denna webbläsare. Appen autosparar ändå när skärmen låser.";
-      return;
-    }
-    try {
-      if (wakeLock) {
-        await wakeLock.release();
-        wakeLock = null;
-        elWakeBtn.textContent = "Håll skärmen vaken: AV";
-        elWakeInfo.style.display = "none";
-      } else {
-        wakeLock = await navigator.wakeLock.request("screen");
-        elWakeBtn.textContent = "Håll skärmen vaken: PÅ";
-        elWakeInfo.style.display = "block";
-        elWakeInfo.textContent = "Skärmen försöker hållas vaken så länge sidan är aktiv. Om du byter app kan den stängas av automatiskt.";
-        wakeLock.addEventListener("release", () => {
-          wakeLock = null;
-          elWakeBtn.textContent = "Håll skärmen vaken: AV";
-        });
-      }
-    } catch (err) {
-      elWakeInfo.style.display = "block";
-      elWakeInfo.textContent = "Kunde inte aktivera Wake Lock (kan kräva användargester eller https). Appen autosparar ändå.";
-    }
-  }
-
-  document.addEventListener("visibilitychange", async () => {
-    // Om sidan blir synlig igen och wake lock var på, försök återaktivera
-    if (document.visibilityState === "visible" && wakeLock === null && elWakeBtn.textContent.includes("PÅ")) {
-      try { wakeLock = await navigator.wakeLock.request("screen"); } catch {}
-    }
-  });
-
-  // ====== Init ======
-  function detectIOS() {
-    const ua = navigator.userAgent || "";
-    return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  }
-
   function init() {
-    populateSelects();
     load();
-
-    const today = nowIsoDate();
-    if (!elDate.value) elDate.value = today;
-    elFilterDate.value = ""; // default: inga filter
+    elDate.value = nowIsoDate();
 
     render();
 
@@ -666,18 +410,8 @@
     elValue.addEventListener("keydown", (e) => {
       if (e.key === "Enter") addEntry();
     });
-
-    elFilterDate.addEventListener("change", render);
-    elFilterArea.addEventListener("change", render);
-
     elExport.addEventListener("click", exportCsv);
     elClear.addEventListener("click", clearAll);
-    elSample.addEventListener("click", addSample);
-
-    elWakeBtn.addEventListener("click", toggleWakeLock);
-
-    // iOS-note
-    if (detectIOS()) elIosNote.style.display = "block";
   }
 
   init();
