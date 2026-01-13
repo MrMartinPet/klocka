@@ -29,44 +29,17 @@
     input[type="date"]:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accentSoft)}
 
     .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-top:16px}
-    .head{
-      display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);
-      background:#f8fafc;
-    }
-    .head .left{
-      padding:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px
-    }
-    .head .right{
-      padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px
-    }
+    .head{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);background:#f8fafc}
+    .head .left{padding:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px}
+    .head .right{padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
     .head .right small{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.2px}
     .content{padding:12px}
 
-    /* groups */
-    .group{
-      border:1px solid var(--line);
-      border-radius:16px;
-      overflow:hidden;
-      margin-bottom:12px;
-      background:#fbfcff;
-    }
-    .gTitle{
-      padding:12px 14px;
-      font-weight:900;
-      font-size:14px;
-      background:#eef5ff;
-      border-bottom:1px solid var(--line);
-    }
+    .group{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px;background:#fbfcff}
+    .gTitle{padding:12px 14px;font-weight:900;font-size:14px;background:#eef5ff;border-bottom:1px solid var(--line)}
     .gTitle.orange{background:#fff2e6}
-    .subs{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      padding:12px;
-    }
-    @media (min-width:680px){
-      .subs{grid-template-columns: 1fr 1fr;}
-    }
+    .subs{display:grid;grid-template-columns:1fr;gap:10px;padding:12px}
+    @media (min-width:680px){.subs{grid-template-columns:1fr 1fr}}
 
     .subCard{
       border:1px solid var(--line);
@@ -76,18 +49,18 @@
       cursor:pointer;
       user-select:none;
       -webkit-tap-highlight-color:transparent;
-      transition:box-shadow .12s ease, border-color .12s ease, transform .08s ease;
+      transition:box-shadow .12s ease,border-color .12s ease,transform .08s ease;
       position:relative;
     }
     .subCard:active{transform:translateY(1px)}
-    .subCard.active{
-      border-color:rgba(37,99,235,.55);
-      box-shadow:0 10px 20px rgba(37,99,235,.12);
-      background:var(--accentSoft);
-    }
-    .subTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .subName{font-weight:900;font-size:13px}
-    .subSum{font-weight:900;font-size:18px; min-width:40px; text-align:right}
+    .subCard.active{border-color:rgba(37,99,235,.55);box-shadow:0 10px 20px rgba(37,99,235,.12);background:var(--accentSoft)}
+    .subTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .subName{font-weight:900;font-size:13px;line-height:1.1}
+    .subMeta{margin-top:4px;font-size:12px;color:var(--muted);font-weight:700}
+    .subRight{text-align:right}
+    .subSum{font-weight:900;font-size:18px}
+    .subAvg{margin-top:4px;font-size:12px;color:var(--muted);font-weight:800}
+
     .expr{
       margin-top:8px;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
@@ -100,44 +73,18 @@
     }
     .expr.muted{color:var(--muted)}
 
-    /* inline input row (appears inside the subCard) */
-    .entryRow{
-      display:none;
-      margin-top:10px;
-      gap:8px;
-      align-items:center;
-    }
+    .entryRow{display:none;margin-top:10px;gap:8px;align-items:center}
     .subCard.active .entryRow{display:flex}
     .numInput{
-      flex:1;
-      border:1px solid rgba(37,99,235,.35);
-      background:#fbfcff;
-      border-radius:12px;
-      padding:12px 12px;
-      font-size:16px;
-      font-weight:900;
-      outline:none;
+      flex:1;border:1px solid rgba(37,99,235,.35);background:#fbfcff;border-radius:12px;padding:12px 12px;
+      font-size:16px;font-weight:900;outline:none
     }
     .numInput:focus{border-color:var(--accent); box-shadow:0 0 0 4px var(--accentSoft)}
     .okBtn{
-      border:1px solid var(--accent);
-      background:var(--accent);
-      color:#fff;
-      font-weight:900;
-      border-radius:12px;
-      padding:12px 14px;
-      cursor:pointer;
-      white-space:nowrap;
+      border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:900;border-radius:12px;padding:12px 14px;cursor:pointer;white-space:nowrap
     }
     .miniBtn{
-      border:1px solid var(--line);
-      background:#f1f5f9;
-      color:var(--text);
-      font-weight:900;
-      border-radius:12px;
-      padding:12px 12px;
-      cursor:pointer;
-      white-space:nowrap;
+      border:1px solid var(--line);background:#f1f5f9;color:var(--text);font-weight:900;border-radius:12px;padding:12px 12px;cursor:pointer;white-space:nowrap
     }
 
     .actions{
@@ -183,7 +130,7 @@
     <div class="actions">
       <div class="btnRow">
         <button class="btn primary" id="exportBtn">Exportera Excel</button>
-        <button class="btn" id="undoBtn" title="Ångrar senaste för aktivt flöde">Ångra senaste</button>
+        <button class="btn" id="undoBtn" title="Ångrar senaste för senast bokförda flöde">Ångra senaste</button>
         <button class="btn danger" id="clearDayBtn" title="Rensar endast valt datum">Rensa datum</button>
       </div>
       <div class="pill"><b id="grandTotal">0</b> totalt; <span id="countTotal">0</span> poster</div>
@@ -195,41 +142,35 @@
 (() => {
   // 6 huvudkategorier, varje med 2 underkategorier
   const GROUPS = [
-    { title: "Efter formning – inför limning", key: "G1", tint: "blue" },
-    { title: "Efter formning – inför bearbetning", key: "G2", tint: "white" },
-    { title: "Efter bearbetning – inför limning", key: "G3", tint: "orange" },
-    { title: "Efter limning – inför fräsning", key: "G4", tint: "blue" },
-    { title: "Efter fräsning – inför montering", key: "G5", tint: "white" },
-    { title: "Efter fräsning – inför lastning", key: "G6", tint: "blue" },
+    { title: "Efter formning – inför limning",        key: "G1", tint: "blue"   },
+    { title: "Efter formning – inför bearbetning",    key: "G2", tint: "white"  },
+    { title: "Efter bearbetning – inför limning",     key: "G3", tint: "orange" },
+    { title: "Efter limning – inför fräsning",        key: "G4", tint: "blue"   },
+    { title: "Efter fräsning – inför montering",      key: "G5", tint: "white"  },
+    { title: "Efter fräsning – inför lastning",       key: "G6", tint: "blue"   },
   ];
 
-  const FLOWS = [
-    { name: "Flöde 1", label: "Limhjul" },
-    { name: "Flöde 2", label: "Byrå + H-lim" },
+  const SUBS = [
+    { short: "Flöde 1", detail: "Limhjul" },
+    { short: "Flöde 2", detail: "Byrå + H-lim" },
   ];
 
-  // map to 12 ids for storage/export
   const AREAS = [
-    { groupKey:"G1", stage:"Efter formning, inför limning", flow:"Flöde 1 Limhjul", id:"01" },
-    { groupKey:"G1", stage:"Efter formning, inför limning", flow:"Flöde 2 Byrå+ H-lim", id:"02" },
-
-    { groupKey:"G2", stage:"Efter formning inför bearbetning", flow:"Flöde 1 Limhjul", id:"03" },
-    { groupKey:"G2", stage:"Efter formning inför bearbetning", flow:"Flöde 2 Byrå+ H-lim", id:"04" },
-
-    { groupKey:"G3", stage:"Efter bearbetning inför limning", flow:"Flöde 1 Limhjul", id:"05" },
-    { groupKey:"G3", stage:"Efter bearbetning inför limning", flow:"Flöde 2 Byrå+ H-lim", id:"06" },
-
-    { groupKey:"G4", stage:"Efter limning, inför fräsning", flow:"Flöde 1 Limhjul", id:"07" },
-    { groupKey:"G4", stage:"Efter limning, inför fräsning", flow:"Flöde 2 Byrå+ H-lim", id:"08" },
-
-    { groupKey:"G5", stage:"Efter fräsning inför montering", flow:"Flöde 1 Limhjul", id:"09" },
-    { groupKey:"G5", stage:"Efter fräsning inför montering", flow:"Flöde 2 Byrå+ H-lim", id:"10" },
-
-    { groupKey:"G6", stage:"Efter fräsning inför lastning", flow:"Flöde 1 Limhjul", id:"11" },
-    { groupKey:"G6", stage:"Efter fräsning inför lastning", flow:"Flöde 2 Byrå+ H-lim", id:"12" },
+    { groupKey:"G1", stage:"Efter formning, inför limning",        flow:"Flöde 1 Limhjul",       id:"01" },
+    { groupKey:"G1", stage:"Efter formning, inför limning",        flow:"Flöde 2 Byrå+ H-lim",   id:"02" },
+    { groupKey:"G2", stage:"Efter formning inför bearbetning",     flow:"Flöde 1 Limhjul",       id:"03" },
+    { groupKey:"G2", stage:"Efter formning inför bearbetning",     flow:"Flöde 2 Byrå+ H-lim",   id:"04" },
+    { groupKey:"G3", stage:"Efter bearbetning inför limning",      flow:"Flöde 1 Limhjul",       id:"05" },
+    { groupKey:"G3", stage:"Efter bearbetning inför limning",      flow:"Flöde 2 Byrå+ H-lim",   id:"06" },
+    { groupKey:"G4", stage:"Efter limning, inför fräsning",        flow:"Flöde 1 Limhjul",       id:"07" },
+    { groupKey:"G4", stage:"Efter limning, inför fräsning",        flow:"Flöde 2 Byrå+ H-lim",   id:"08" },
+    { groupKey:"G5", stage:"Efter fräsning inför montering",       flow:"Flöde 1 Limhjul",       id:"09" },
+    { groupKey:"G5", stage:"Efter fräsning inför montering",       flow:"Flöde 2 Byrå+ H-lim",   id:"10" },
+    { groupKey:"G6", stage:"Efter fräsning inför lastning",        flow:"Flöde 1 Limhjul",       id:"11" },
+    { groupKey:"G6", stage:"Efter fräsning inför lastning",        flow:"Flöde 2 Byrå+ H-lim",   id:"12" },
   ];
 
-  const STORE_KEY = "pia_groups_v1";
+  const STORE_KEY = "pia_groups_v2";
   const $ = (id) => document.getElementById(id);
 
   const elDate = $("date");
@@ -241,11 +182,13 @@
   const elGrandTotal = $("grandTotal");
   const elCountTotal = $("countTotal");
 
-  // store: { byDate: { "YYYY-MM-DD": { "01":[..], ... } } }
   let store = { byDate:{} };
 
-  // active sub = areaId
+  // active sub = areaId (only while entering)
   let activeAreaId = null;
+
+  // remember last changed area for Undo (even after auto-unselect)
+  let lastAreaId = null;
 
   function pad(n){ return String(n).padStart(2,"0"); }
   function nowIsoDate(){
@@ -284,10 +227,7 @@
   }
 
   function sum(nums){ return nums.reduce((a,b)=>a+b,0); }
-
-  function exprText(nums){
-    return nums.length ? nums.join("+") : "";
-  }
+  function exprText(nums){ return nums.length ? nums.join("+") : ""; }
 
   function computeDayTotals(date){
     let total = 0;
@@ -300,14 +240,21 @@
     return { total, count };
   }
 
+  function avgPerCarrier(nums){
+    // "average antal per lastbärare per underkategori" = medelvärde per registrerad post
+    if (!nums.length) return 0;
+    return sum(nums) / nums.length;
+  }
+
   function setActive(areaId){
     activeAreaId = areaId;
-    render(); // creates the input in active card
-    // focus input automatically => iPhone numeric keyboard shows immediately
+    render(); // creates the input row in active card
+
+    // focus automatically so iPhone shows numeric keyboard immediately
     requestAnimationFrame(() => {
       const input = document.querySelector(`input[data-input-for="${areaId}"]`);
       if (input){
-        input.value = ""; // clear latest digits memory
+        input.value = ""; // clear last digits
         input.focus({ preventScroll:true });
       }
     });
@@ -322,23 +269,22 @@
     nums.push(n);
     save();
 
-    // clear typed digits and keep focus (fast repetitive entry)
-    requestAnimationFrame(() => {
-      const input = document.querySelector(`input[data-input-for="${areaId}"]`);
-      if (input){
-        input.value = "";
-        input.focus({ preventScroll:true });
-      }
-    });
+    lastAreaId = areaId;
+
+    // after OK: unselect everything (your request)
+    activeAreaId = null;
 
     render();
   }
 
   function undoLast(){
-    if (!activeAreaId) return;
+    const target = lastAreaId;
+    if (!target) return;
+
     const date = dayKey();
-    const nums = getNums(date, activeAreaId);
+    const nums = getNums(date, target);
     if (nums.length === 0) return;
+
     nums.pop();
     save();
     render();
@@ -351,6 +297,7 @@
     store.byDate[date] = {};
     save();
     activeAreaId = null;
+    lastAreaId = null;
     render();
   }
 
@@ -362,24 +309,19 @@
     elGrandTotal.textContent = total;
     elCountTotal.textContent = count;
 
-    // Build UI
-    elContent.innerHTML = GROUPS.map((g, gi) => {
+    elContent.innerHTML = GROUPS.map((g) => {
       const titleClass = g.tint === "orange" ? "orange" : "";
-      const a1 = AREAS.find(x => x.groupKey === g.key && x.id.endsWith("1")) || AREAS.filter(x=>x.groupKey===g.key)[0];
-      const a2 = AREAS.find(x => x.groupKey === g.key && x.id.endsWith("2")) || AREAS.filter(x=>x.groupKey===g.key)[1];
-
-      // safer: pick by order in AREAS
       const pair = AREAS.filter(x => x.groupKey === g.key);
       const p1 = pair[0], p2 = pair[1];
 
       const n1 = getNums(date, p1.id);
       const n2 = getNums(date, p2.id);
 
-      const s1 = sum(n1);
-      const s2 = sum(n2);
+      const s1 = sum(n1), s2 = sum(n2);
+      const e1 = exprText(n1), e2 = exprText(n2);
 
-      const e1 = exprText(n1);
-      const e2 = exprText(n2);
+      const a1 = avgPerCarrier(n1);
+      const a2 = avgPerCarrier(n2);
 
       const c1Active = activeAreaId === p1.id ? "active" : "";
       const c2Active = activeAreaId === p2.id ? "active" : "";
@@ -398,8 +340,14 @@
           <div class="subs">
             <div class="subCard ${c1Active}" data-area="${p1.id}">
               <div class="subTop">
-                <div class="subName">${FLOWS[0].name} <span style="color:var(--muted);font-weight:800">(${FLOWS[0].label})</span></div>
-                <div class="subSum">${s1}</div>
+                <div>
+                  <div class="subName">${SUBS[0].short}</div>
+                  <div class="subMeta">${SUBS[0].detail}</div>
+                </div>
+                <div class="subRight">
+                  <div class="subSum">${s1}</div>
+                  <div class="subAvg">Avg: ${a1.toFixed(1)}</div>
+                </div>
               </div>
               <div class="expr ${e1? "" : "muted"}">${e1 || "—"}</div>
               ${c1Active ? inputRow(p1.id) : ""}
@@ -407,8 +355,14 @@
 
             <div class="subCard ${c2Active}" data-area="${p2.id}">
               <div class="subTop">
-                <div class="subName">${FLOWS[1].name} <span style="color:var(--muted);font-weight:800">(${FLOWS[1].label})</span></div>
-                <div class="subSum">${s2}</div>
+                <div>
+                  <div class="subName">${SUBS[1].short}</div>
+                  <div class="subMeta">${SUBS[1].detail}</div>
+                </div>
+                <div class="subRight">
+                  <div class="subSum">${s2}</div>
+                  <div class="subAvg">Avg: ${a2.toFixed(1)}</div>
+                </div>
               </div>
               <div class="expr ${e2? "" : "muted"}">${e2 || "—"}</div>
               ${c2Active ? inputRow(p2.id) : ""}
@@ -418,16 +372,16 @@
       `;
     }).join("");
 
-    // Wire interactions
+    // Click on a subcard activates it and immediately focuses input (keyboard)
     elContent.querySelectorAll("[data-area]").forEach(card => {
       card.addEventListener("click", (e) => {
-        // prevent clicking OK/cancel from retriggering activation logic
         const t = e.target;
         if (t && (t.matches("[data-ok]") || t.matches("[data-cancel]") || t.closest("[data-ok]"))) return;
         setActive(card.getAttribute("data-area"));
       }, { passive:false });
     });
 
+    // OK handlers
     elContent.querySelectorAll("[data-ok]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -438,6 +392,7 @@
       });
     });
 
+    // Cancel handlers
     elContent.querySelectorAll("[data-cancel]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -446,6 +401,7 @@
       });
     });
 
+    // Enter = OK
     elContent.querySelectorAll("input[data-input-for]").forEach(input => {
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter"){
@@ -507,10 +463,12 @@
     load();
     elDate.value = nowIsoDate();
     activeAreaId = null;
+    lastAreaId = null;
     render();
 
     elDate.addEventListener("change", () => {
       activeAreaId = null;
+      lastAreaId = null;
       render();
     });
 
