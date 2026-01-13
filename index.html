@@ -9,108 +9,147 @@
     :root{
       --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0;
       --accent:#2563eb; --accentSoft:#e8efff; --shadow:0 12px 28px rgba(16,24,40,.08);
-      --r:18px; --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --r:18px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
     header{position:sticky;top:0;z-index:10;background:rgba(246,247,251,.92);backdrop-filter:saturate(140%) blur(12px);border-bottom:1px solid var(--line)}
-    .wrap{max-width:1180px;margin:0 auto;padding:16px}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
     .topRow{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .brand{display:flex;flex-direction:column;gap:2px}
     .brand h1{margin:0;font-size:22px;font-weight:900;letter-spacing:.3px}
     .brand .sub{font-size:12px;color:var(--muted)}
     .dateBox{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow);min-width:240px;justify-content:space-between}
     .dateBox label{font-size:12px;color:var(--muted)}
-    input[type="date"]{font:inherit;border:1px solid var(--line);background:#fbfcff;padding:10px 10px;border-radius:12px;color:var(--text);outline:none;width:155px}
+    input[type="date"]{
+      font:inherit;border:1px solid var(--line);background:#fbfcff;padding:10px 10px;border-radius:12px;color:var(--text);
+      outline:none;width:155px
+    }
     input[type="date"]:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accentSoft)}
 
-    .grid{display:grid;gap:16px;margin-top:16px}
-    @media (min-width:980px){.grid{grid-template-columns:1.25fr .75fr}}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
-
-    .tableHead{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
-    .tableHead .left,.tableHead .right{padding:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;background:#f8fafc}
-    .tableHead .right{flex-direction:column;gap:4px}
-    .tableHead .right small{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.2px}
-
-    .rows{padding:10px}
-    .row{
-      display:grid;grid-template-columns:1.2fr .9fr 1.6fr 90px;gap:10px;align-items:center;
-      padding:12px 12px;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;
-      background:#fbfcff;transition:transform .08s ease,border-color .12s ease,box-shadow .12s ease;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-top:16px}
+    .head{
+      display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);
+      background:#f8fafc;
     }
-    .row:active{transform:translateY(1px)}
-    .row.active{border-color:rgba(37,99,235,.55);box-shadow:0 10px 20px rgba(37,99,235,.12);background:var(--accentSoft)}
-    .cellStage{font-weight:700;font-size:12.5px;line-height:1.2}
-    .cellFlow{font-weight:700;font-size:12.5px;color:#0b1b4d;opacity:.85}
-    .cellExpr{
+    .head .left{
+      padding:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px
+    }
+    .head .right{
+      padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px
+    }
+    .head .right small{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.2px}
+    .content{padding:12px}
+
+    /* groups */
+    .group{
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      margin-bottom:12px;
+      background:#fbfcff;
+    }
+    .gTitle{
+      padding:12px 14px;
+      font-weight:900;
+      font-size:14px;
+      background:#eef5ff;
+      border-bottom:1px solid var(--line);
+    }
+    .gTitle.orange{background:#fff2e6}
+    .subs{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      padding:12px;
+    }
+    @media (min-width:680px){
+      .subs{grid-template-columns: 1fr 1fr;}
+    }
+
+    .subCard{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px;
+      background:#ffffff;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      transition:box-shadow .12s ease, border-color .12s ease, transform .08s ease;
+      position:relative;
+    }
+    .subCard:active{transform:translateY(1px)}
+    .subCard.active{
+      border-color:rgba(37,99,235,.55);
+      box-shadow:0 10px 20px rgba(37,99,235,.12);
+      background:var(--accentSoft);
+    }
+    .subTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .subName{font-weight:900;font-size:13px}
+    .subSum{font-weight:900;font-size:18px; min-width:40px; text-align:right}
+    .expr{
+      margin-top:8px;
       font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:13px;color:#0f172a;overflow:hidden;white-space:nowrap;text-overflow:ellipsis
+      font-size:13px;
+      color:#0f172a;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      min-height:18px;
     }
-    .cellSum{text-align:right;font-size:16px;font-weight:900}
+    .expr.muted{color:var(--muted)}
 
-    .g0{background:#eef5ff}.g1{background:#fbfcff}.g2{background:#fff2e6}.g3{background:#eef5ff}.g4{background:#fbfcff}.g5{background:#eef5ff}
+    /* inline input row (appears inside the subCard) */
+    .entryRow{
+      display:none;
+      margin-top:10px;
+      gap:8px;
+      align-items:center;
+    }
+    .subCard.active .entryRow{display:flex}
+    .numInput{
+      flex:1;
+      border:1px solid rgba(37,99,235,.35);
+      background:#fbfcff;
+      border-radius:12px;
+      padding:12px 12px;
+      font-size:16px;
+      font-weight:900;
+      outline:none;
+    }
+    .numInput:focus{border-color:var(--accent); box-shadow:0 0 0 4px var(--accentSoft)}
+    .okBtn{
+      border:1px solid var(--accent);
+      background:var(--accent);
+      color:#fff;
+      font-weight:900;
+      border-radius:12px;
+      padding:12px 14px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .miniBtn{
+      border:1px solid var(--line);
+      background:#f1f5f9;
+      color:var(--text);
+      font-weight:900;
+      border-radius:12px;
+      padding:12px 12px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
 
-    .actions{display:flex;gap:10px;flex-wrap:wrap;padding:12px;border-top:1px solid var(--line);background:#f8fafc;justify-content:space-between;align-items:center}
+    .actions{
+      display:flex;gap:10px;flex-wrap:wrap;padding:12px;border-top:1px solid var(--line);background:#f8fafc;
+      justify-content:space-between;align-items:center
+    }
     .btnRow{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{border:1px solid var(--line);background:#f1f5f9;color:var(--text);border-radius:14px;padding:12px 14px;font-weight:800;cursor:pointer}
+    .btn{border:1px solid var(--line);background:#f1f5f9;color:var(--text);border-radius:14px;padding:12px 14px;font-weight:900;cursor:pointer}
     .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
     .btn.danger{background:#ef4444;border-color:#ef4444;color:#fff}
     .pill{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 10px;font-size:12px;color:var(--muted);white-space:nowrap}
     .pill b{color:var(--text)}
-
-    .sidePad{padding:14px}
-    .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .kpi{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fbfcff}
-    .kpi .lbl{font-size:12px;color:var(--muted)}
-    .kpi .val{font-size:24px;font-weight:900;margin-top:6px}
-    .hr{height:1px;background:var(--line);margin:14px 0}
-    .legend{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:40vh;overflow:auto;padding-right:4px}
-    .legRow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border:1px solid var(--line);background:#fbfcff;border-radius:14px;padding:10px 12px;font-size:12px}
-    .legRow .name{color:var(--text);font-weight:800;line-height:1.2}
-    .legRow .sub{color:var(--muted);margin-top:4px;font-weight:600}
-    .legRow .num{font-weight:900;font-size:14px}
-
-    /* Modal (native keyboard via single input INSIDE modal, not a separate field on screen) */
-    .modalBack{
-      position:fixed; inset:0; background:rgba(15,23,42,.35);
-      display:none; align-items:flex-end; justify-content:center;
-      padding:14px; z-index:1000;
-    }
-    .modalBack.on{display:flex}
-    .modal{
-      width:min(520px, 100%);
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:18px;
-      box-shadow:0 30px 60px rgba(2,6,23,.22);
-      overflow:hidden;
-    }
-    .modalHead{
-      padding:14px 14px 10px;
-      background:#f8fafc;
-      border-bottom:1px solid var(--line);
-    }
-    .modalHead .t{font-weight:900}
-    .modalHead .s{font-size:12px; color:var(--muted); margin-top:4px; line-height:1.25}
-    .modalBody{padding:12px 14px}
-    .modalInput{
-      width:100%;
-      padding:16px 14px;
-      border-radius:14px;
-      border:1px solid rgba(37,99,235,.35);
-      background:#fbfcff;
-      font-size:18px;
-      font-weight:800;
-      outline:none;
-    }
-    .modalInput:focus{border-color:var(--accent); box-shadow:0 0 0 4px var(--accentSoft)}
-    .modalBtns{
-      display:flex; gap:10px; padding:12px 14px 14px;
-      border-top:1px solid var(--line);
-      background:#fff;
-    }
-    .modalBtns .btn{flex:1}
   </style>
 </head>
 <body>
@@ -119,7 +158,7 @@
     <div class="topRow">
       <div class="brand">
         <h1>PIA</h1>
-        <div class="sub">Tryck på en rad → skriv värde → OK</div>
+        <div class="sub">Tryck på Flöde 1/2 → tangentbord direkt → OK</div>
       </div>
       <div class="dateBox">
         <div><label for="date">Datum</label></div>
@@ -130,150 +169,107 @@
 </header>
 
 <main class="wrap">
-  <div class="grid">
-
-    <section class="card">
-      <div class="tableHead">
-        <div class="left">PIA</div>
-        <div class="right">
-          <small>Datum</small>
-          <div id="dateTitle" style="font-weight:900">—</div>
-        </div>
+  <section class="card">
+    <div class="head">
+      <div class="left">PIA</div>
+      <div class="right">
+        <small>Datum</small>
+        <div id="dateTitle" style="font-weight:900">—</div>
       </div>
+    </div>
 
-      <div class="rows" id="rows"></div>
+    <div class="content" id="content"></div>
 
-      <div class="actions">
-        <div class="btnRow">
-          <button class="btn primary" id="exportBtn">Exportera Excel</button>
-          <button class="btn" id="undoBtn" title="Tar bort senaste inmatningen i aktiv rad">Ångra senaste</button>
-          <button class="btn danger" id="clearDayBtn" title="Rensar endast valt datum">Rensa datum</button>
-        </div>
-        <div class="pill"><b id="grandTotal">0</b> totalt; <span id="countTotal">0</span> poster</div>
+    <div class="actions">
+      <div class="btnRow">
+        <button class="btn primary" id="exportBtn">Exportera Excel</button>
+        <button class="btn" id="undoBtn" title="Ångrar senaste för aktivt flöde">Ångra senaste</button>
+        <button class="btn danger" id="clearDayBtn" title="Rensar endast valt datum">Rensa datum</button>
       </div>
-    </section>
-
-    <aside class="card">
-      <div class="sidePad">
-        <div style="font-weight:900; font-size:16px">Fördelning</div>
-        <div style="color:var(--muted); font-size:12px; margin-top:4px">Summering för valt datum</div>
-
-        <div class="hr"></div>
-
-        <div class="kpis">
-          <div class="kpi">
-            <div class="lbl">Total PIA</div>
-            <div class="val" id="kpiTotal">0</div>
-          </div>
-          <div class="kpi">
-            <div class="lbl">Aktiv rad</div>
-            <div class="val" id="kpiActive">—</div>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <canvas id="pie" width="520" height="360" style="width:100%; height:auto; border:1px solid var(--line); border-radius:16px; background:#fbfcff"></canvas>
-
-        <div class="legend" id="legend"></div>
-      </div>
-    </aside>
-
-  </div>
+      <div class="pill"><b id="grandTotal">0</b> totalt; <span id="countTotal">0</span> poster</div>
+    </div>
+  </section>
 </main>
-
-<!-- Modal for input -->
-<div class="modalBack" id="modalBack" aria-hidden="true">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <div class="modalHead">
-      <div class="t" id="mTitle">Ny notering</div>
-      <div class="s" id="mSub">—</div>
-    </div>
-    <div class="modalBody">
-      <input id="mVal" class="modalInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999" />
-    </div>
-    <div class="modalBtns">
-      <button class="btn" id="mCancel">Avbryt</button>
-      <button class="btn primary" id="mOk">OK</button>
-    </div>
-  </div>
-</div>
 
 <script>
 (() => {
-  const AREAS = [
-    { stage: "Efter formning, inför limning",        flow: "Flöde 1 Limhjul",      group:0 },
-    { stage: "Efter formning, inför limning",        flow: "Flöde 2 Byrå+ H-lim",  group:0 },
-    { stage: "Efter formning inför bearbetning",     flow: "Flöde 1 Limhjul",      group:1 },
-    { stage: "Efter formning inför bearbetning",     flow: "Flöde 2 Byrå+ H-lim",  group:1 },
-    { stage: "Efter bearbetning inför limning",      flow: "Flöde 1 Limhjul",      group:2 },
-    { stage: "Efter bearbetning inför limning",      flow: "Flöde 2 Byrå+ H-lim",  group:2 },
-    { stage: "Efter limning, inför fräsning",        flow: "Flöde 1 Limhjul",      group:3 },
-    { stage: "Efter limning, inför fräsning",        flow: "Flöde 2 Byrå+ H-lim",  group:3 },
-    { stage: "Efter fräsning inför montering",       flow: "Flöde 1 Limhjul",      group:4 },
-    { stage: "Efter fräsning inför montering",       flow: "Flöde 2 Byrå+ H-lim",  group:4 },
-    { stage: "Efter fräsning inför lastning",        flow: "Flöde 1 Limhjul",      group:5 },
-    { stage: "Efter fräsning inför lastning",        flow: "Flöde 2 Byrå+ H-lim",  group:5 },
-  ].map((a, idx) => ({ ...a, id: String(idx+1).padStart(2,"0") }));
+  // 6 huvudkategorier, varje med 2 underkategorier
+  const GROUPS = [
+    { title: "Efter formning – inför limning", key: "G1", tint: "blue" },
+    { title: "Efter formning – inför bearbetning", key: "G2", tint: "white" },
+    { title: "Efter bearbetning – inför limning", key: "G3", tint: "orange" },
+    { title: "Efter limning – inför fräsning", key: "G4", tint: "blue" },
+    { title: "Efter fräsning – inför montering", key: "G5", tint: "white" },
+    { title: "Efter fräsning – inför lastning", key: "G6", tint: "blue" },
+  ];
 
-  const STORE_KEY = "pia_design_v2_modal";
+  const FLOWS = [
+    { name: "Flöde 1", label: "Limhjul" },
+    { name: "Flöde 2", label: "Byrå + H-lim" },
+  ];
+
+  // map to 12 ids for storage/export
+  const AREAS = [
+    { groupKey:"G1", stage:"Efter formning, inför limning", flow:"Flöde 1 Limhjul", id:"01" },
+    { groupKey:"G1", stage:"Efter formning, inför limning", flow:"Flöde 2 Byrå+ H-lim", id:"02" },
+
+    { groupKey:"G2", stage:"Efter formning inför bearbetning", flow:"Flöde 1 Limhjul", id:"03" },
+    { groupKey:"G2", stage:"Efter formning inför bearbetning", flow:"Flöde 2 Byrå+ H-lim", id:"04" },
+
+    { groupKey:"G3", stage:"Efter bearbetning inför limning", flow:"Flöde 1 Limhjul", id:"05" },
+    { groupKey:"G3", stage:"Efter bearbetning inför limning", flow:"Flöde 2 Byrå+ H-lim", id:"06" },
+
+    { groupKey:"G4", stage:"Efter limning, inför fräsning", flow:"Flöde 1 Limhjul", id:"07" },
+    { groupKey:"G4", stage:"Efter limning, inför fräsning", flow:"Flöde 2 Byrå+ H-lim", id:"08" },
+
+    { groupKey:"G5", stage:"Efter fräsning inför montering", flow:"Flöde 1 Limhjul", id:"09" },
+    { groupKey:"G5", stage:"Efter fräsning inför montering", flow:"Flöde 2 Byrå+ H-lim", id:"10" },
+
+    { groupKey:"G6", stage:"Efter fräsning inför lastning", flow:"Flöde 1 Limhjul", id:"11" },
+    { groupKey:"G6", stage:"Efter fräsning inför lastning", flow:"Flöde 2 Byrå+ H-lim", id:"12" },
+  ];
+
+  const STORE_KEY = "pia_groups_v1";
   const $ = (id) => document.getElementById(id);
 
   const elDate = $("date");
   const elDateTitle = $("dateTitle");
-  const elRows = $("rows");
+  const elContent = $("content");
   const elExport = $("exportBtn");
   const elUndo = $("undoBtn");
   const elClearDay = $("clearDayBtn");
   const elGrandTotal = $("grandTotal");
   const elCountTotal = $("countTotal");
-  const elKpiTotal = $("kpiTotal");
-  const elKpiActive = $("kpiActive");
-  const elLegend = $("legend");
-  const elPie = $("pie");
 
-  // Modal elements
-  const elModalBack = $("modalBack");
-  const elMTitle = $("mTitle");
-  const elMSub = $("mSub");
-  const elMVal = $("mVal");
-  const elMCancel = $("mCancel");
-  const elMOk = $("mOk");
+  // store: { byDate: { "YYYY-MM-DD": { "01":[..], ... } } }
+  let store = { byDate:{} };
 
-  let store = { v:1, byDate:{} };
-  let activeAreaId = AREAS[0]?.id ?? "01";
-  let pendingAreaId = null; // which row is being entered in modal
+  // active sub = areaId
+  let activeAreaId = null;
 
   function pad(n){ return String(n).padStart(2,"0"); }
   function nowIsoDate(){
     const d = new Date();
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
+  function dayKey(){ return elDate.value || nowIsoDate(); }
 
   function load(){
     try{
       const raw = localStorage.getItem(STORE_KEY);
-      store = raw ? JSON.parse(raw) : { v:1, byDate:{} };
-      if (!store || typeof store !== "object") store = { v:1, byDate:{} };
+      store = raw ? JSON.parse(raw) : { byDate:{} };
+      if (!store || typeof store !== "object") store = { byDate:{} };
       if (!store.byDate || typeof store.byDate !== "object") store.byDate = {};
     }catch{
-      store = { v:1, byDate:{} };
+      store = { byDate:{} };
     }
   }
-
-  function save(){
-    localStorage.setItem(STORE_KEY, JSON.stringify(store));
-  }
-
-  function dayKey(){
-    return elDate.value || nowIsoDate();
-  }
+  function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
 
   function ensureDay(date){
     if (!store.byDate[date]) store.byDate[date] = {};
     return store.byDate[date];
   }
-
   function getNums(date, areaId){
     const day = ensureDay(date);
     if (!Array.isArray(day[areaId])) day[areaId] = [];
@@ -287,205 +283,184 @@
     return Number.isFinite(n) ? n : null;
   }
 
-  function areaLabel(areaId){
-    const a = AREAS.find(x => x.id === areaId);
-    return a ? `${a.stage} — ${a.flow}` : "—";
+  function sum(nums){ return nums.reduce((a,b)=>a+b,0); }
+
+  function exprText(nums){
+    return nums.length ? nums.join("+") : "";
   }
 
   function computeDayTotals(date){
-    const sums = new Map();
     let total = 0;
     let count = 0;
     for (const a of AREAS){
       const nums = getNums(date, a.id);
-      const s = nums.reduce((acc,x)=>acc+x,0);
-      sums.set(a.id, s);
-      total += s;
+      total += sum(nums);
       count += nums.length;
     }
-    return { sums, total, count };
+    return { total, count };
   }
 
-  function renderRows(){
-    const date = dayKey();
-    const { sums } = computeDayTotals(date);
-
-    elRows.innerHTML = AREAS.map(a => {
-      const nums = getNums(date, a.id);
-      const expr = nums.length ? nums.join("+") : "";
-      const sum = sums.get(a.id) || 0;
-      const active = a.id === activeAreaId ? "active" : "";
-      const g = `g${a.group}`;
-      return `
-        <div class="row ${g} ${active}" data-area="${a.id}">
-          <div class="cellStage">${a.stage}</div>
-          <div class="cellFlow">${a.flow}</div>
-          <div class="cellExpr">${expr}</div>
-          <div class="cellSum">${sum}</div>
-        </div>
-      `;
-    }).join("");
-
-    elRows.querySelectorAll("[data-area]").forEach(el => {
-      el.addEventListener("click", () => {
-        const id = el.getAttribute("data-area");
-        activeAreaId = id;
-        openModalFor(id);
-        render();
-      }, { passive:true });
+  function setActive(areaId){
+    activeAreaId = areaId;
+    render(); // creates the input in active card
+    // focus input automatically => iPhone numeric keyboard shows immediately
+    requestAnimationFrame(() => {
+      const input = document.querySelector(`input[data-input-for="${areaId}"]`);
+      if (input){
+        input.value = ""; // clear latest digits memory
+        input.focus({ preventScroll:true });
+      }
     });
   }
 
-  function renderTotals(){
-    const date = dayKey();
-    const { total, count } = computeDayTotals(date);
-    elGrandTotal.textContent = total;
-    elCountTotal.textContent = count;
-    elKpiTotal.textContent = total;
-
-    const a = AREAS.find(x => x.id === activeAreaId);
-    elKpiActive.textContent = a ? a.id : "—";
-  }
-
-  function drawPie(){
-    const date = dayKey();
-    const { sums, total } = computeDayTotals(date);
-
-    const ctx = elPie.getContext("2d");
-    const W = elPie.width, H = elPie.height;
-    ctx.clearRect(0,0,W,H);
-
-    ctx.fillStyle = "#fbfcff";
-    ctx.fillRect(0,0,W,H);
-
-    if (total === 0){
-      ctx.fillStyle = "#64748b";
-      ctx.font = "700 18px system-ui, -apple-system, Segoe UI, Roboto";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("Ingen data för dagen", W/2, H/2);
-      return;
-    }
-
-    const cx = W/2, cy = H/2;
-    const r = Math.min(W,H)*0.33;
-    const inner = r*0.58;
-
-    const colors = [
-      "#2563eb","#ef4444",
-      "#0ea5e9","#f97316",
-      "#22c55e","#a855f7",
-      "#14b8a6","#eab308",
-      "#64748b","#fb7185",
-      "#3b82f6","#f59e0b",
-    ];
-
-    let start = -Math.PI/2;
-    let i = 0;
-
-    for (const a of AREAS){
-      const v = sums.get(a.id) || 0;
-      if (v <= 0) { i++; continue; }
-      const ang = (v/total) * Math.PI*2;
-
-      ctx.beginPath();
-      ctx.moveTo(cx,cy);
-      ctx.arc(cx,cy,r,start,start+ang);
-      ctx.closePath();
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.fill();
-
-      start += ang;
-      i++;
-    }
-
-    ctx.beginPath();
-    ctx.arc(cx,cy,inner,0,Math.PI*2);
-    ctx.closePath();
-    ctx.fillStyle = "#fbfcff";
-    ctx.fill();
-
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "900 30px system-ui, -apple-system, Segoe UI, Roboto";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(String(total), cx, cy-6);
-
-    ctx.fillStyle = "#64748b";
-    ctx.font = "700 13px system-ui, -apple-system, Segoe UI, Roboto";
-    ctx.fillText("Total", cx, cy+22);
-  }
-
-  function renderLegend(){
-    const date = dayKey();
-    const { sums, total } = computeDayTotals(date);
-    const rows = AREAS
-      .map(a => ({ a, sum: sums.get(a.id) || 0 }))
-      .filter(x => x.sum > 0)
-      .sort((x,y) => y.sum - x.sum);
-
-    elLegend.innerHTML = rows.map(x => {
-      const pct = total ? Math.round((x.sum/total)*100) : 0;
-      return `
-        <div class="legRow">
-          <div style="min-width:0">
-            <div class="name">${x.a.stage}</div>
-            <div class="sub">${x.a.flow} · ${pct}%</div>
-          </div>
-          <div class="num">${x.sum}</div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  function render(){
-    const d = dayKey();
-    elDateTitle.textContent = d;
-    renderRows();
-    renderTotals();
-    drawPie();
-    renderLegend();
-  }
-
-  // Modal flow (this is not a separate value field on the main UI)
-  function openModalFor(areaId){
-    pendingAreaId = areaId;
-
-    elMTitle.textContent = "Ny notering";
-    elMSub.textContent = areaLabel(areaId);
-
-    elMVal.value = "";
-    elModalBack.classList.add("on");
-    elModalBack.setAttribute("aria-hidden","false");
-
-    // focus to open native keyboard
-    requestAnimationFrame(() => elMVal.focus({ preventScroll:true }));
-  }
-
-  function closeModal(){
-    elModalBack.classList.remove("on");
-    elModalBack.setAttribute("aria-hidden","true");
-    pendingAreaId = null;
-    elMVal.value = "";
-  }
-
-  function commitModal(){
-    if (!pendingAreaId) return;
-    const n = sanitizeValue(elMVal.value);
+  function addToArea(areaId, rawValue){
+    const n = sanitizeValue(rawValue);
     if (n === null) return;
 
     const date = dayKey();
-    const nums = getNums(date, pendingAreaId);
+    const nums = getNums(date, areaId);
     nums.push(n);
     save();
 
-    // clear memory of latest typed digits (as requested)
-    elMVal.value = "";
-    closeModal();
+    // clear typed digits and keep focus (fast repetitive entry)
+    requestAnimationFrame(() => {
+      const input = document.querySelector(`input[data-input-for="${areaId}"]`);
+      if (input){
+        input.value = "";
+        input.focus({ preventScroll:true });
+      }
+    });
+
     render();
   }
 
-  // Export CSV (semikolon) - en rad per inmatat tal
+  function undoLast(){
+    if (!activeAreaId) return;
+    const date = dayKey();
+    const nums = getNums(date, activeAreaId);
+    if (nums.length === 0) return;
+    nums.pop();
+    save();
+    render();
+  }
+
+  function clearDay(){
+    const date = dayKey();
+    const ok = confirm(`Rensa ALLT för ${date}?`);
+    if (!ok) return;
+    store.byDate[date] = {};
+    save();
+    activeAreaId = null;
+    render();
+  }
+
+  function render(){
+    const date = dayKey();
+    elDateTitle.textContent = date;
+
+    const { total, count } = computeDayTotals(date);
+    elGrandTotal.textContent = total;
+    elCountTotal.textContent = count;
+
+    // Build UI
+    elContent.innerHTML = GROUPS.map((g, gi) => {
+      const titleClass = g.tint === "orange" ? "orange" : "";
+      const a1 = AREAS.find(x => x.groupKey === g.key && x.id.endsWith("1")) || AREAS.filter(x=>x.groupKey===g.key)[0];
+      const a2 = AREAS.find(x => x.groupKey === g.key && x.id.endsWith("2")) || AREAS.filter(x=>x.groupKey===g.key)[1];
+
+      // safer: pick by order in AREAS
+      const pair = AREAS.filter(x => x.groupKey === g.key);
+      const p1 = pair[0], p2 = pair[1];
+
+      const n1 = getNums(date, p1.id);
+      const n2 = getNums(date, p2.id);
+
+      const s1 = sum(n1);
+      const s2 = sum(n2);
+
+      const e1 = exprText(n1);
+      const e2 = exprText(n2);
+
+      const c1Active = activeAreaId === p1.id ? "active" : "";
+      const c2Active = activeAreaId === p2.id ? "active" : "";
+
+      const inputRow = (areaId) => `
+        <div class="entryRow">
+          <input class="numInput" data-input-for="${areaId}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999" />
+          <button class="okBtn" data-ok="${areaId}">OK</button>
+          <button class="miniBtn" data-cancel>✕</button>
+        </div>
+      `;
+
+      return `
+        <div class="group">
+          <div class="gTitle ${titleClass}">${g.title}</div>
+          <div class="subs">
+            <div class="subCard ${c1Active}" data-area="${p1.id}">
+              <div class="subTop">
+                <div class="subName">${FLOWS[0].name} <span style="color:var(--muted);font-weight:800">(${FLOWS[0].label})</span></div>
+                <div class="subSum">${s1}</div>
+              </div>
+              <div class="expr ${e1? "" : "muted"}">${e1 || "—"}</div>
+              ${c1Active ? inputRow(p1.id) : ""}
+            </div>
+
+            <div class="subCard ${c2Active}" data-area="${p2.id}">
+              <div class="subTop">
+                <div class="subName">${FLOWS[1].name} <span style="color:var(--muted);font-weight:800">(${FLOWS[1].label})</span></div>
+                <div class="subSum">${s2}</div>
+              </div>
+              <div class="expr ${e2? "" : "muted"}">${e2 || "—"}</div>
+              ${c2Active ? inputRow(p2.id) : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Wire interactions
+    elContent.querySelectorAll("[data-area]").forEach(card => {
+      card.addEventListener("click", (e) => {
+        // prevent clicking OK/cancel from retriggering activation logic
+        const t = e.target;
+        if (t && (t.matches("[data-ok]") || t.matches("[data-cancel]") || t.closest("[data-ok]"))) return;
+        setActive(card.getAttribute("data-area"));
+      }, { passive:false });
+    });
+
+    elContent.querySelectorAll("[data-ok]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const areaId = btn.getAttribute("data-ok");
+        const input = document.querySelector(`input[data-input-for="${areaId}"]`);
+        if (!input) return;
+        addToArea(areaId, input.value);
+      });
+    });
+
+    elContent.querySelectorAll("[data-cancel]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        activeAreaId = null;
+        render();
+      });
+    });
+
+    elContent.querySelectorAll("input[data-input-for]").forEach(input => {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter"){
+          e.preventDefault();
+          const areaId = input.getAttribute("data-input-for");
+          addToArea(areaId, input.value);
+        } else if (e.key === "Escape"){
+          e.preventDefault();
+          activeAreaId = null;
+          render();
+        }
+      });
+    });
+  }
+
   function toCsvSemicolon(rows){
     const esc = (s) => {
       const str = String(s ?? "");
@@ -507,7 +482,6 @@
         }
       }
     }
-
     const csv = toCsvSemicolon([header, ...rows]);
     const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -522,25 +496,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  function undoLast(){
-    const date = dayKey();
-    const nums = getNums(date, activeAreaId);
-    if (nums.length === 0) return;
-    nums.pop();
-    save();
-    render();
-  }
-
-  function clearDay(){
-    const date = dayKey();
-    const ok = confirm(`Rensa ALLT för ${date}?`);
-    if (!ok) return;
-    store.byDate[date] = {};
-    save();
-    render();
-  }
-
-  // Warn on leave/reload
+  // Warn on leave/reload (best-effort; iOS may ignore sometimes)
   window.addEventListener("beforeunload", (e) => {
     e.preventDefault();
     e.returnValue = "";
@@ -550,34 +506,17 @@
   function init(){
     load();
     elDate.value = nowIsoDate();
-    activeAreaId = AREAS[0]?.id ?? "01";
+    activeAreaId = null;
     render();
 
-    elDate.addEventListener("change", render);
+    elDate.addEventListener("change", () => {
+      activeAreaId = null;
+      render();
+    });
 
     elExport.addEventListener("click", exportCsv);
     elUndo.addEventListener("click", undoLast);
     elClearDay.addEventListener("click", clearDay);
-
-    // Modal buttons
-    elMCancel.addEventListener("click", closeModal);
-    elMOk.addEventListener("click", commitModal);
-
-    // Enter = OK
-    elMVal.addEventListener("keydown", (e) => {
-      if (e.key === "Enter"){
-        e.preventDefault();
-        commitModal();
-      } else if (e.key === "Escape"){
-        e.preventDefault();
-        closeModal();
-      }
-    });
-
-    // click outside modal to close
-    elModalBack.addEventListener("click", (e) => {
-      if (e.target === elModalBack) closeModal();
-    }, { passive:true });
   }
 
   init();
