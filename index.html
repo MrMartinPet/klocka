@@ -9,8 +9,7 @@
     :root{
       --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0;
       --accent:#2563eb; --accentSoft:#e8efff; --shadow:0 12px 28px rgba(16,24,40,.08);
-      --r:18px;
-      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --r:18px; --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
@@ -22,10 +21,7 @@
     .brand .sub{font-size:12px;color:var(--muted)}
     .dateBox{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow);min-width:240px;justify-content:space-between}
     .dateBox label{font-size:12px;color:var(--muted)}
-    input[type="date"]{
-      font:inherit;border:1px solid var(--line);background:#fbfcff;padding:10px 10px;border-radius:12px;color:var(--text);
-      outline:none;width:155px
-    }
+    input[type="date"]{font:inherit;border:1px solid var(--line);background:#fbfcff;padding:10px 10px;border-radius:12px;color:var(--text);outline:none;width:155px}
     input[type="date"]:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accentSoft)}
 
     .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-top:16px}
@@ -80,12 +76,8 @@
       font-size:16px;font-weight:900;outline:none
     }
     .numInput:focus{border-color:var(--accent); box-shadow:0 0 0 4px var(--accentSoft)}
-    .okBtn{
-      border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:900;border-radius:12px;padding:12px 14px;cursor:pointer;white-space:nowrap
-    }
-    .miniBtn{
-      border:1px solid var(--line);background:#f1f5f9;color:var(--text);font-weight:900;border-radius:12px;padding:12px 12px;cursor:pointer;white-space:nowrap
-    }
+    .okBtn{border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:900;border-radius:12px;padding:12px 14px;cursor:pointer;white-space:nowrap}
+    .miniBtn{border:1px solid var(--line);background:#f1f5f9;color:var(--text);font-weight:900;border-radius:12px;padding:12px 12px;cursor:pointer;white-space:nowrap}
 
     .actions{
       display:flex;gap:10px;flex-wrap:wrap;padding:12px;border-top:1px solid var(--line);background:#f8fafc;
@@ -140,7 +132,6 @@
 
 <script>
 (() => {
-  // 6 huvudkategorier, varje med 2 underkategorier
   const GROUPS = [
     { title: "Efter formning – inför limning",        key: "G1", tint: "blue"   },
     { title: "Efter formning – inför bearbetning",    key: "G2", tint: "white"  },
@@ -170,7 +161,7 @@
     { groupKey:"G6", stage:"Efter fräsning inför lastning",        flow:"Flöde 2 Byrå+ H-lim",   id:"12" },
   ];
 
-  const STORE_KEY = "pia_groups_v2";
+  const STORE_KEY = "pia_groups_v3";
   const $ = (id) => document.getElementById(id);
 
   const elDate = $("date");
@@ -184,10 +175,10 @@
 
   let store = { byDate:{} };
 
-  // active sub = areaId (only while entering)
+  // active while entering
   let activeAreaId = null;
 
-  // remember last changed area for Undo (even after auto-unselect)
+  // remember last changed for Undo (even after auto-unselect)
   let lastAreaId = null;
 
   function pad(n){ return String(n).padStart(2,"0"); }
@@ -241,23 +232,28 @@
   }
 
   function avgPerCarrier(nums){
-    // "average antal per lastbärare per underkategori" = medelvärde per registrerad post
     if (!nums.length) return 0;
     return sum(nums) / nums.length;
   }
 
+  // NEW: focus immediately in the same user gesture (no long press)
   function setActive(areaId){
     activeAreaId = areaId;
-    render(); // creates the input row in active card
 
-    // focus automatically so iPhone shows numeric keyboard immediately
-    requestAnimationFrame(() => {
-      const input = document.querySelector(`input[data-input-for="${areaId}"]`);
-      if (input){
-        input.value = ""; // clear last digits
-        input.focus({ preventScroll:true });
-      }
-    });
+    // render creates input row now
+    render();
+
+    const input = document.querySelector(`input[data-input-for="${areaId}"]`);
+    if (input){
+      input.value = "";
+      input.focus();
+      input.click(); // extra push for iOS
+
+      // fallback (some iOS versions)
+      setTimeout(() => {
+        try { input.focus(); input.click(); } catch {}
+      }, 0);
+    }
   }
 
   function addToArea(areaId, rawValue){
@@ -271,7 +267,7 @@
 
     lastAreaId = areaId;
 
-    // after OK: unselect everything (your request)
+    // after OK: unselect everything
     activeAreaId = null;
 
     render();
@@ -372,16 +368,15 @@
       `;
     }).join("");
 
-    // Click on a subcard activates it and immediately focuses input (keyboard)
+    // Use pointerup for iOS responsiveness
     elContent.querySelectorAll("[data-area]").forEach(card => {
-      card.addEventListener("click", (e) => {
+      card.addEventListener("pointerup", (e) => {
         const t = e.target;
         if (t && (t.matches("[data-ok]") || t.matches("[data-cancel]") || t.closest("[data-ok]"))) return;
         setActive(card.getAttribute("data-area"));
       }, { passive:false });
     });
 
-    // OK handlers
     elContent.querySelectorAll("[data-ok]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -392,7 +387,6 @@
       });
     });
 
-    // Cancel handlers
     elContent.querySelectorAll("[data-cancel]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -401,7 +395,6 @@
       });
     });
 
-    // Enter = OK
     elContent.querySelectorAll("input[data-input-for]").forEach(input => {
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter"){
@@ -452,7 +445,6 @@
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  // Warn on leave/reload (best-effort; iOS may ignore sometimes)
   window.addEventListener("beforeunload", (e) => {
     e.preventDefault();
     e.returnValue = "";
