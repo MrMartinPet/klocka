@@ -33,10 +33,10 @@
       backdrop-filter:saturate(140%) blur(12px);
       border-bottom:1px solid var(--line);
     }
-    .wrap{max-width:1040px; margin:0 auto; padding:18px 16px 24px}
-    h1{margin:0; font-size:20px; font-weight:700; letter-spacing:.2px}
+    .wrap{max-width:1100px; margin:0 auto; padding:18px 16px 24px}
+    h1{margin:0; font-size:26px; font-weight:800; letter-spacing:.4px}
     .grid{display:grid; gap:16px}
-    @media (min-width:900px){ .grid{grid-template-columns: 1.2fr .8fr} }
+    @media (min-width:900px){ .grid{grid-template-columns: 1.1fr .9fr} }
 
     .card{
       background:var(--card);
@@ -46,6 +46,27 @@
       padding:18px;
     }
     .card h2{margin:0 0 12px; font-size:16px}
+    .hero{
+      display:grid;
+      gap:12px;
+      align-items:center;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width:700px){
+      .hero{grid-template-columns: 1fr 1fr}
+    }
+    .hero-box{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      background:#fbfcff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .hero-box h1{font-size:30px}
+    .hero-box .subtitle{font-size:12px; color:var(--muted); margin-top:4px}
 
     label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
     input, button{font:inherit}
@@ -65,10 +86,10 @@
     .area-grid{
       display:grid;
       gap:10px;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     }
     .area-btn{
-      padding:16px 14px;
+      padding:12px 14px;
       border-radius:16px;
       border:1px solid var(--line);
       background:#f9faff;
@@ -123,39 +144,95 @@
       border:1px solid var(--line); border-radius:14px; padding:10px 12px;
       background:#fbfcff; font-size:14px;
     }
+
+    .pia-table{
+      display:grid;
+      gap:8px;
+      margin-top:14px;
+    }
+    .pia-row{
+      display:grid;
+      grid-template-columns: 1.4fr 1fr 120px;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#f7f9ff;
+      align-items:center;
+      font-size:14px;
+    }
+    .pia-row .stage{font-weight:600}
+    .pia-row .flow{color:var(--muted)}
+    .pia-row .sum{font-size:16px; font-weight:800; text-align:right}
+    .pia-row.alt{background:#fff3e9}
+    .pia-row.soft{background:#eef5ff}
+
+    .dist{
+      margin-top:16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .dist-row{
+      display:grid;
+      grid-template-columns: 1fr 80px;
+      gap:10px;
+      align-items:center;
+    }
+    .dist-bar{
+      height:12px;
+      border-radius:999px;
+      background:linear-gradient(90deg, #2f6bff, #8bb4ff);
+      position:relative;
+      overflow:hidden;
+    }
+    .dist-bar span{
+      position:absolute;
+      inset:0;
+      background:rgba(255,255,255,.6);
+      transform-origin:left;
+    }
+    .dist-label{font-size:12px; color:var(--muted)}
   </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <h1>PIA-räknare</h1>
+    <h1>PIA-översikt</h1>
   </div>
 </header>
 
 <main class="wrap">
+  <section class="card hero">
+    <div class="hero-box">
+      <div>
+        <h1>PIA</h1>
+        <div class="subtitle">Produktion i arbete</div>
+      </div>
+      <div style="min-width:180px">
+        <label for="date">Datum</label>
+        <input id="date" type="date" />
+      </div>
+    </div>
+    <div class="hero-box">
+      <div>
+        <div class="subtitle">Registrera volym</div>
+        <div style="font-size:18px; font-weight:700">Ny notering</div>
+      </div>
+      <div style="min-width:180px">
+        <label for="value">Värde</label>
+        <input id="value" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999" />
+      </div>
+    </div>
+  </section>
   <div class="grid">
     <section class="card">
-      <h2>Ny post</h2>
-
-      <div class="row">
-        <div>
-          <label for="date">Datum</label>
-          <input id="date" type="date" />
-        </div>
-        <div>
-          <label for="value">Värde</label>
-          <input id="value" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999" />
-        </div>
-      </div>
-
-      <div style="margin-top:14px">
-        <label>Kategori</label>
-        <div class="area-grid" id="areaButtons"></div>
-      </div>
+      <h2>Välj delsteg</h2>
+      <div class="area-grid" id="areaButtons"></div>
 
       <div class="btn-row">
-        <button class="btn primary" id="addBtn">Lägg till</button>
-        <button class="btn" id="exportBtn">Exportera CSV</button>
+        <button class="btn primary" id="addBtn">Spara notering</button>
+        <button class="btn" id="exportBtn">Ladda ner Excel</button>
       </div>
 
       <div class="list" id="list"></div>
@@ -175,10 +252,12 @@
         </div>
       </div>
 
-      <div class="totals" id="areaTotals"></div>
+      <div class="pia-table" id="areaTotals"></div>
+
+      <div class="dist" id="distribution"></div>
 
       <div class="btn-row">
-        <button class="btn danger" id="clearBtn">Rensa all data</button>
+        <button class="btn danger" id="clearBtn">Nollställ allt</button>
       </div>
     </section>
   </div>
@@ -210,6 +289,7 @@
   const elList = $("list");
   const elAreaButtons = $("areaButtons");
   const elTotals = $("areaTotals");
+  const elDistribution = $("distribution");
   const elGrandTotal = $("grandTotal");
   const elCountTotal = $("countTotal");
   const elExport = $("exportBtn");
@@ -320,7 +400,7 @@
         </div>
         <div style="display:flex; align-items:center; gap:10px">
           <div class="num">${e.value}</div>
-          <button class="btn" data-del="${e.id}">Radera</button>
+          <button class="btn" data-del="${e.id}">Ta bort</button>
         </div>
       </div>
     `).join("");
@@ -340,6 +420,12 @@
     return { totalsByArea, grand };
   }
 
+  function stageClass(index) {
+    if (index % 3 === 1) return "alt";
+    if (index % 3 === 2) return "soft";
+    return "";
+  }
+
   function renderTotals() {
     const { totalsByArea, grand } = computeTotals();
     elGrandTotal.textContent = grand;
@@ -350,15 +436,36 @@
 
     if (rows.length === 0) {
       elTotals.innerHTML = `<div class="total-row"><span>Inga data</span><strong>0</strong></div>`;
+      elDistribution.innerHTML = "";
       return;
     }
 
-    elTotals.innerHTML = rows.map(({ a, sum }) => `
-      <div class="total-row">
-        <span>${a.flow}</span>
-        <strong>${sum}</strong>
+    elTotals.innerHTML = rows.map(({ a, sum }, index) => `
+      <div class="pia-row ${stageClass(index)}">
+        <div class="stage">${a.stage}</div>
+        <div class="flow">${a.flow}</div>
+        <div class="sum">${sum}</div>
       </div>
     `).join("");
+
+    const max = Math.max(...rows.map(r => r.sum));
+    elDistribution.innerHTML = `
+      <div class="dist-label">Fördelning per flöde</div>
+      ${rows.map(({ a, sum }) => {
+        const scale = max ? sum / max : 0;
+        return `
+          <div class="dist-row">
+            <div>
+              <div style="font-size:13px; font-weight:600">${a.flow}</div>
+              <div class="dist-bar" aria-hidden="true">
+                <span style="transform:scaleX(${scale})"></span>
+              </div>
+            </div>
+            <div style="text-align:right; font-weight:700">${sum}</div>
+          </div>
+        `;
+      }).join("")}
+    `;
   }
 
   function render() {
