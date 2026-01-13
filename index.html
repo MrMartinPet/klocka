@@ -4,19 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#f6f7fb" />
-  <title>PIA-räknare</title>
+  <title>PIA</title>
   <style>
     :root{
       --bg:#f6f7fb;
       --card:#ffffff;
-      --text:#12141a;
-      --muted:#6c7380;
-      --line:#e2e6ee;
-      --accent:#2f6bff;
-      --accent-soft:#e8efff;
-      --danger:#e5484d;
-      --radius:18px;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --accent:#2563eb;
+      --accentSoft:#e8efff;
       --shadow:0 12px 28px rgba(16,24,40,.08);
+      --r:18px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box}
@@ -26,6 +25,7 @@
       background:var(--bg);
       color:var(--text);
       -webkit-font-smoothing:antialiased;
+      overscroll-behavior:none;
     }
     header{
       position:sticky; top:0; z-index:10;
@@ -33,448 +33,616 @@
       backdrop-filter:saturate(140%) blur(12px);
       border-bottom:1px solid var(--line);
     }
-    .wrap{max-width:1100px; margin:0 auto; padding:18px 16px 24px}
-    h1{margin:0; font-size:26px; font-weight:800; letter-spacing:.4px}
-    .grid{display:grid; gap:16px}
-    @media (min-width:900px){ .grid{grid-template-columns: 1.1fr .9fr} }
+    .wrap{max-width:1180px; margin:0 auto; padding:16px}
+    .topRow{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .brand h1{margin:0; font-size:22px; font-weight:900; letter-spacing:.3px}
+    .brand .sub{font-size:12px; color:var(--muted)}
+    .dateBox{
+      display:flex; align-items:center; gap:10px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      box-shadow:var(--shadow);
+      min-width:240px;
+      justify-content:space-between;
+    }
+    .dateBox label{font-size:12px; color:var(--muted)}
+    input[type="date"]{
+      font:inherit;
+      border:1px solid var(--line);
+      background:#fbfcff;
+      padding:10px 10px;
+      border-radius:12px;
+      color:var(--text);
+      outline:none;
+      width:155px;
+    }
+    input[type="date"]:focus{border-color:var(--accent); box-shadow:0 0 0 4px var(--accentSoft)}
+
+    .grid{display:grid; gap:16px; margin-top:16px}
+    @media (min-width:980px){ .grid{grid-template-columns: 1.25fr .75fr} }
 
     .card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--radius);
+      border-radius:var(--r);
       box-shadow:var(--shadow);
-      padding:18px;
-    }
-    .card h2{margin:0 0 12px; font-size:16px}
-    .hero{
-      display:grid;
-      gap:12px;
-      align-items:center;
-      grid-template-columns: 1fr;
-    }
-    @media (min-width:700px){
-      .hero{grid-template-columns: 1fr 1fr}
-    }
-    .hero-box{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px;
-      background:#fbfcff;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .hero-box h1{font-size:30px}
-    .hero-box .subtitle{font-size:12px; color:var(--muted); margin-top:4px}
-
-    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
-    input, button{font:inherit}
-    input{
-      width:100%;
-      padding:14px 14px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#fbfcff;
-      color:var(--text);
-    }
-    input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
-
-    .row{display:grid; gap:12px}
-    @media (min-width:560px){ .row{grid-template-columns: 1fr 1fr} }
-
-    .area-grid{
-      display:grid;
-      gap:10px;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    }
-    .area-btn{
-      padding:12px 14px;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#f9faff;
-      color:var(--text);
-      text-align:left;
-      font-weight:600;
-      cursor:pointer;
-      transition:all .15s ease;
-    }
-    .area-btn small{display:block; margin-top:6px; font-weight:500; color:var(--muted)}
-    .area-btn.active{
-      border-color:var(--accent);
-      background:var(--accent-soft);
-      color:#0b1b4d;
-      box-shadow:0 8px 20px rgba(47,107,255,.15);
-    }
-
-    .btn-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:12px}
-    .btn{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px 18px;
-      font-weight:700;
-      cursor:pointer;
-      background:#f3f5fb;
-      color:var(--text);
-    }
-    .btn.primary{background:var(--accent); border-color:var(--accent); color:white}
-    .btn.danger{background:var(--danger); border-color:var(--danger); color:white}
-
-    .list{
-      display:flex; flex-direction:column; gap:10px; margin-top:16px;
-      max-height:52vh; overflow:auto; padding-right:4px;
-    }
-    .item{
-      display:grid; grid-template-columns: 1fr auto; gap:12px;
-      border:1px solid var(--line); border-radius:16px; padding:12px 14px;
-      background:#fbfcff; align-items:center;
-    }
-    .item .meta{display:flex; flex-direction:column; gap:4px}
-    .item .tag{font-size:12px; color:var(--muted)}
-    .item .num{font-size:18px; font-weight:800}
-
-    .kpi{display:grid; gap:12px; grid-template-columns: 1fr 1fr}
-    .kpi .box{border:1px solid var(--line); border-radius:16px; padding:14px; background:#fbfcff}
-    .kpi .lbl{font-size:12px; color:var(--muted)}
-    .kpi .val{font-size:20px; font-weight:800; margin-top:6px}
-
-    .totals{display:flex; flex-direction:column; gap:8px; margin-top:12px}
-    .total-row{
-      display:flex; align-items:center; justify-content:space-between;
-      border:1px solid var(--line); border-radius:14px; padding:10px 12px;
-      background:#fbfcff; font-size:14px;
-    }
-
-    .pia-table{
-      display:grid;
-      gap:8px;
-      margin-top:14px;
-    }
-    .pia-row{
-      display:grid;
-      grid-template-columns: 1.4fr 1fr 120px;
-      gap:10px;
-      padding:12px 14px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#f7f9ff;
-      align-items:center;
-      font-size:14px;
-    }
-    .pia-row .stage{font-weight:600}
-    .pia-row .flow{color:var(--muted)}
-    .pia-row .sum{font-size:16px; font-weight:800; text-align:right}
-    .pia-row.alt{background:#fff3e9}
-    .pia-row.soft{background:#eef5ff}
-
-    .dist{
-      margin-top:16px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .dist-row{
-      display:grid;
-      grid-template-columns: 1fr 80px;
-      gap:10px;
-      align-items:center;
-    }
-    .dist-bar{
-      height:12px;
-      border-radius:999px;
-      background:linear-gradient(90deg, #2f6bff, #8bb4ff);
-      position:relative;
       overflow:hidden;
     }
-    .dist-bar span{
-      position:absolute;
-      inset:0;
-      background:rgba(255,255,255,.6);
-      transform-origin:left;
+
+    /* “PIA | Datum” header inside table card (like screenshot) */
+    .tableHead{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom:1px solid var(--line);
     }
-    .dist-label{font-size:12px; color:var(--muted)}
+    .tableHead .left, .tableHead .right{
+      padding:16px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900;
+      font-size:22px;
+      background:#f8fafc;
+    }
+    .tableHead .right{
+      flex-direction:column;
+      gap:4px;
+    }
+    .tableHead .right small{
+      font-size:12px; color:var(--muted); font-weight:700; letter-spacing:.2px;
+    }
+
+    /* Table rows */
+    .rows{padding:10px}
+    .row{
+      display:grid;
+      grid-template-columns: 1.2fr .9fr 1.6fr 90px;
+      gap:10px;
+      align-items:center;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      margin-bottom:10px;
+      background:#fbfcff;
+      transition:transform .08s ease, border-color .12s ease, box-shadow .12s ease;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .row:active{transform:translateY(1px)}
+    .row.active{
+      border-color:rgba(37,99,235,.55);
+      box-shadow:0 10px 20px rgba(37,99,235,.12);
+      background:var(--accentSoft);
+    }
+    .cellStage{font-weight:700; font-size:12.5px; line-height:1.2}
+    .cellFlow{font-weight:700; font-size:12.5px; color:#0b1b4d; opacity:.85}
+    .cellExpr{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:13px;
+      color:#0f172a;
+      overflow:hidden;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+    }
+    .cellSum{
+      text-align:right;
+      font-size:16px;
+      font-weight:900;
+    }
+
+    /* Group background like your image */
+    .g0{background:#eef5ff}
+    .g1{background:#fbfcff}
+    .g2{background:#fff2e6}
+    .g3{background:#eef5ff}
+    .g4{background:#fbfcff}
+    .g5{background:#eef5ff}
+
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding:12px;
+      border-top:1px solid var(--line);
+      background:#f8fafc;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{
+      border:1px solid var(--line);
+      background:#f1f5f9;
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+    .btn.danger{background:#ef4444; border-color:#ef4444; color:#fff}
+    .pill{
+      display:flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .pill b{color:var(--text)}
+
+    /* Right card */
+    .sidePad{padding:14px}
+    .kpis{
+      display:grid; grid-template-columns: 1fr 1fr; gap:12px;
+    }
+    .kpi{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:#fbfcff;
+    }
+    .kpi .lbl{font-size:12px; color:var(--muted)}
+    .kpi .val{font-size:24px; font-weight:900; margin-top:6px}
+    .hr{height:1px; background:var(--line); margin:14px 0}
+    .legend{
+      display:flex; flex-direction:column; gap:8px; margin-top:10px;
+      max-height:40vh; overflow:auto; padding-right:4px;
+    }
+    .legRow{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      border:1px solid var(--line);
+      background:#fbfcff;
+      border-radius:14px;
+      padding:10px 12px;
+      font-size:12px;
+    }
+    .legRow .name{color:var(--text); font-weight:800; line-height:1.2}
+    .legRow .sub{color:var(--muted); margin-top:4px; font-weight:600}
+    .legRow .num{font-weight:900; font-size:14px}
+
+    /* Hidden quick input (only for keyboard) */
+    #quickInput{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      height:52px;
+      padding:14px 14px;
+      border-radius:16px;
+      border:1px solid rgba(37,99,235,.35);
+      background:#ffffff;
+      color:var(--text);
+      box-shadow:0 18px 34px rgba(37,99,235,.14);
+      outline:none;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .12s ease;
+      z-index:999;
+    }
+    #quickInput.on{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .hintBar{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:72px;
+      z-index:999;
+      display:none;
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      box-shadow:var(--shadow);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .hintBar.on{display:block}
+    .hintBar b{color:var(--text)}
   </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <h1>PIA-översikt</h1>
+    <div class="topRow">
+      <div class="brand">
+        <h1>PIA</h1>
+        <div class="sub">Tryck på en rad → skriv siffra → Enter</div>
+      </div>
+      <div class="dateBox">
+        <div>
+          <label for="date">Datum</label>
+        </div>
+        <input id="date" type="date" />
+      </div>
+    </div>
   </div>
 </header>
 
 <main class="wrap">
-  <section class="card hero">
-    <div class="hero-box">
-      <div>
-        <h1>PIA</h1>
-        <div class="subtitle">Produktion i arbete</div>
-      </div>
-      <div style="min-width:180px">
-        <label for="date">Datum</label>
-        <input id="date" type="date" />
-      </div>
-    </div>
-    <div class="hero-box">
-      <div>
-        <div class="subtitle">Registrera volym</div>
-        <div style="font-size:18px; font-weight:700">Ny notering</div>
-      </div>
-      <div style="min-width:180px">
-        <label for="value">Värde</label>
-        <input id="value" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999" />
-      </div>
-    </div>
-  </section>
   <div class="grid">
-    <section class="card">
-      <h2>Välj delsteg</h2>
-      <div class="area-grid" id="areaButtons"></div>
 
-      <div class="btn-row">
-        <button class="btn primary" id="addBtn">Spara notering</button>
-        <button class="btn" id="exportBtn">Ladda ner Excel</button>
-      </div>
-
-      <div class="list" id="list"></div>
-    </section>
-
-    <section class="card">
-      <h2>Summering</h2>
-
-      <div class="kpi">
-        <div class="box">
-          <div class="lbl">Total PIA</div>
-          <div class="val" id="grandTotal">0</div>
-        </div>
-        <div class="box">
-          <div class="lbl">Antal poster</div>
-          <div class="val" id="countTotal">0</div>
+    <!-- TABLE CARD -->
+    <section class="card" aria-label="PIA tabell">
+      <div class="tableHead">
+        <div class="left">PIA</div>
+        <div class="right">
+          <small>Datum</small>
+          <div id="dateTitle" style="font-weight:900">—</div>
         </div>
       </div>
 
-      <div class="pia-table" id="areaTotals"></div>
+      <div class="rows" id="rows"></div>
 
-      <div class="dist" id="distribution"></div>
-
-      <div class="btn-row">
-        <button class="btn danger" id="clearBtn">Nollställ allt</button>
+      <div class="actions">
+        <div class="btnRow">
+          <button class="btn primary" id="exportBtn">Exportera Excel</button>
+          <button class="btn" id="undoBtn" title="Ta bort senaste inmatningen för vald rad">Ångra senaste</button>
+          <button class="btn danger" id="clearDayBtn" title="Rensar endast valt datum">Rensa datum</button>
+        </div>
+        <div class="pill"><b id="grandTotal">0</b> totalt; <span id="countTotal">0</span> poster</div>
       </div>
     </section>
+
+    <!-- SIDE CARD -->
+    <aside class="card" aria-label="Summering och fördelning">
+      <div class="sidePad">
+        <div style="font-weight:900; font-size:16px">Fördelning</div>
+        <div style="color:var(--muted); font-size:12px; margin-top:4px">Summering för valt datum</div>
+
+        <div class="hr"></div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="lbl">Total PIA</div>
+            <div class="val" id="kpiTotal">0</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Aktiv rad</div>
+            <div class="val" id="kpiActive">—</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <canvas id="pie" width="520" height="360" style="width:100%; height:auto; border:1px solid var(--line); border-radius:16px; background:#fbfcff"></canvas>
+
+        <div class="legend" id="legend"></div>
+      </div>
+    </aside>
+
   </div>
 </main>
+
+<div class="hintBar" id="hintBar">
+  Aktiv: <b id="hintArea">—</b> · Skriv värde (0–999) och tryck <b>Enter</b>
+</div>
+<input id="quickInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0–999 (Enter)" />
 
 <script>
 (() => {
   const AREAS = [
-    { stage: "Efter formning, inför limning",        flow: "Flöde 1 Limhjul" },
-    { stage: "Efter formning, inför limning",        flow: "Flöde 2 Byrå+ H-lim" },
-    { stage: "Efter formning inför bearbetning",     flow: "Flöde 1 Limhjul" },
-    { stage: "Efter formning inför bearbetning",     flow: "Flöde 2 Byrå+ H-lim" },
-    { stage: "Efter bearbetning inför limning",      flow: "Flöde 1 Limhjul" },
-    { stage: "Efter bearbetning inför limning",      flow: "Flöde 2 Byrå+ H-lim" },
-    { stage: "Efter limning, inför fräsning",        flow: "Flöde 1 Limhjul" },
-    { stage: "Efter limning, inför fräsning",        flow: "Flöde 2 Byrå+ H-lim" },
-    { stage: "Efter fräsning inför montering",       flow: "Flöde 1 Limhjul" },
-    { stage: "Efter fräsning inför montering",       flow: "Flöde 2 Byrå+ H-lim" },
-    { stage: "Efter fräsning inför lastning",        flow: "Flöde 1 Limhjul" },
-    { stage: "Efter fräsning inför lastning",        flow: "Flöde 2 Byrå+ H-lim" },
-  ].map((a, idx) => ({ ...a, id: String(idx+1).padStart(2, "0") }));
+    // 6 grupper (varje grupp = 2 rader)
+    { stage: "Efter formning, inför limning",        flow: "Flöde 1 Limhjul",      group:0 },
+    { stage: "Efter formning, inför limning",        flow: "Flöde 2 Byrå+ H-lim",  group:0 },
 
-  const STORE_KEY = "pia_app_v2";
+    { stage: "Efter formning inför bearbetning",     flow: "Flöde 1 Limhjul",      group:1 },
+    { stage: "Efter formning inför bearbetning",     flow: "Flöde 2 Byrå+ H-lim",  group:1 },
+
+    { stage: "Efter bearbetning inför limning",      flow: "Flöde 1 Limhjul",      group:2 },
+    { stage: "Efter bearbetning inför limning",      flow: "Flöde 2 Byrå+ H-lim",  group:2 },
+
+    { stage: "Efter limning, inför fräsning",        flow: "Flöde 1 Limhjul",      group:3 },
+    { stage: "Efter limning, inför fräsning",        flow: "Flöde 2 Byrå+ H-lim",  group:3 },
+
+    { stage: "Efter fräsning inför montering",       flow: "Flöde 1 Limhjul",      group:4 },
+    { stage: "Efter fräsning inför montering",       flow: "Flöde 2 Byrå+ H-lim",  group:4 },
+
+    { stage: "Efter fräsning inför lastning",        flow: "Flöde 1 Limhjul",      group:5 },
+    { stage: "Efter fräsning inför lastning",        flow: "Flöde 2 Byrå+ H-lim",  group:5 },
+  ].map((a, idx) => ({ ...a, id: String(idx+1).padStart(2,"0") }));
+
+  const STORE_KEY = "pia_design_v1";
   const $ = (id) => document.getElementById(id);
 
   const elDate = $("date");
-  const elValue = $("value");
-  const elAdd = $("addBtn");
-  const elList = $("list");
-  const elAreaButtons = $("areaButtons");
-  const elTotals = $("areaTotals");
-  const elDistribution = $("distribution");
+  const elDateTitle = $("dateTitle");
+  const elRows = $("rows");
+  const elExport = $("exportBtn");
+  const elUndo = $("undoBtn");
+  const elClearDay = $("clearDayBtn");
   const elGrandTotal = $("grandTotal");
   const elCountTotal = $("countTotal");
-  const elExport = $("exportBtn");
-  const elClear = $("clearBtn");
+  const elKpiTotal = $("kpiTotal");
+  const elKpiActive = $("kpiActive");
+  const elQuick = $("quickInput");
+  const elHintBar = $("hintBar");
+  const elHintArea = $("hintArea");
+  const elLegend = $("legend");
+  const elPie = $("pie");
 
-  let entries = [];
-  let selectedAreaId = AREAS[0]?.id ?? "";
+  // store shape:
+  // { v:1, byDate: { "YYYY-MM-DD": { "01":[12,33], "02":[5], ... } } }
+  let store = { v:1, byDate:{} };
+  let activeAreaId = AREAS[0]?.id ?? "01";
 
-  function nowIsoDate() {
+  function pad(n){ return String(n).padStart(2,"0"); }
+  function nowIsoDate(){
     const d = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
 
-  function areaLabel(areaId) {
-    const a = AREAS.find(x => x.id === areaId);
-    if (!a) return "Okänt";
-    return `${a.stage} — ${a.flow}`;
-  }
-
-  function load() {
-    try {
+  function load(){
+    try{
       const raw = localStorage.getItem(STORE_KEY);
-      entries = raw ? JSON.parse(raw) : [];
-      if (!Array.isArray(entries)) entries = [];
-    } catch {
-      entries = [];
+      store = raw ? JSON.parse(raw) : { v:1, byDate:{} };
+      if (!store || typeof store !== "object") store = { v:1, byDate:{} };
+      if (!store.byDate || typeof store.byDate !== "object") store.byDate = {};
+    }catch{
+      store = { v:1, byDate:{} };
     }
   }
 
-  function save() {
-    localStorage.setItem(STORE_KEY, JSON.stringify(entries));
+  function save(){
+    localStorage.setItem(STORE_KEY, JSON.stringify(store));
   }
 
-  function sanitizeValue(v) {
+  function dayKey(){
+    return elDate.value || nowIsoDate();
+  }
+
+  function ensureDay(date){
+    if (!store.byDate[date]) store.byDate[date] = {};
+    return store.byDate[date];
+  }
+
+  function getNums(date, areaId){
+    const day = ensureDay(date);
+    if (!Array.isArray(day[areaId])) day[areaId] = [];
+    return day[areaId];
+  }
+
+  function sanitizeValue(v){
     const s = String(v ?? "").trim();
     if (!/^\d{1,3}$/.test(s)) return null;
     const n = Number(s);
     return Number.isFinite(n) ? n : null;
   }
 
-  function uid() {
-    return (crypto?.randomUUID?.() || `id_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+  function areaLabel(areaId){
+    const a = AREAS.find(x => x.id === areaId);
+    return a ? `${a.stage} ${a.flow}` : "—";
   }
 
-  function renderAreaButtons() {
-    elAreaButtons.innerHTML = AREAS.map((a) => {
-      const active = a.id === selectedAreaId ? "active" : "";
+  function setActive(areaId){
+    activeAreaId = areaId;
+    // clear input and refocus so keyboard is ready
+    elQuick.value = "";
+    showQuickInput(true);
+    requestAnimationFrame(() => elQuick.focus({ preventScroll:true }));
+    render();
+  }
+
+  function showQuickInput(on){
+    elQuick.classList.toggle("on", !!on);
+    elHintBar.classList.toggle("on", !!on);
+    elHintArea.textContent = areaLabel(activeAreaId);
+  }
+
+  function addNumber(value){
+    const date = dayKey();
+    const n = sanitizeValue(value);
+    if (n === null) return;
+
+    const nums = getNums(date, activeAreaId);
+    nums.push(n);
+    save();
+
+    // reset input like you asked
+    elQuick.value = "";
+    requestAnimationFrame(() => elQuick.focus({ preventScroll:true }));
+    render();
+  }
+
+  function undoLast(){
+    const date = dayKey();
+    const nums = getNums(date, activeAreaId);
+    if (nums.length === 0) return;
+    nums.pop();
+    save();
+    elQuick.value = "";
+    requestAnimationFrame(() => elQuick.focus({ preventScroll:true }));
+    render();
+  }
+
+  function clearDay(){
+    const date = dayKey();
+    const ok = confirm(`Rensa ALLT för ${date}?`);
+    if (!ok) return;
+    store.byDate[date] = {};
+    save();
+    elQuick.value = "";
+    requestAnimationFrame(() => elQuick.focus({ preventScroll:true }));
+    render();
+  }
+
+  function computeDayTotals(date){
+    const sums = new Map(); // areaId -> sum
+    let total = 0;
+    let count = 0;
+
+    for (const a of AREAS){
+      const nums = getNums(date, a.id);
+      const s = nums.reduce((acc,x)=>acc+x,0);
+      sums.set(a.id, s);
+      total += s;
+      count += nums.length;
+    }
+    return { sums, total, count };
+  }
+
+  function renderRows(){
+    const date = dayKey();
+    const { sums } = computeDayTotals(date);
+
+    elRows.innerHTML = AREAS.map(a => {
+      const nums = getNums(date, a.id);
+      const expr = nums.length ? nums.join("+") : "";
+      const sum = sums.get(a.id) || 0;
+      const active = a.id === activeAreaId ? "active" : "";
+      const g = `g${a.group}`;
+
       return `
-        <button class="area-btn ${active}" data-area="${a.id}">
-          ${a.stage}
-          <small>${a.flow}</small>
-        </button>
+        <div class="row ${g} ${active}" data-area="${a.id}">
+          <div class="cellStage">${a.stage}</div>
+          <div class="cellFlow">${a.flow}</div>
+          <div class="cellExpr">${expr}</div>
+          <div class="cellSum">${sum}</div>
+        </div>
       `;
     }).join("");
 
-    elAreaButtons.querySelectorAll("[data-area]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        selectedAreaId = btn.getAttribute("data-area");
-        renderAreaButtons();
-      });
+    elRows.querySelectorAll("[data-area]").forEach(el => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-area");
+        // clear last typed and open keyboard
+        setActive(id);
+      }, { passive:true });
     });
   }
 
-  function addEntry() {
-    const date = elDate.value || nowIsoDate();
-    const value = sanitizeValue(elValue.value);
-    if (!date) return alert("Välj datum.");
-    if (!selectedAreaId) return alert("Välj kategori.");
-    if (value === null) return alert("Värde måste vara 0–999.");
+  function renderTotals(){
+    const date = dayKey();
+    const { total, count } = computeDayTotals(date);
+    elGrandTotal.textContent = total;
+    elCountTotal.textContent = count;
+    elKpiTotal.textContent = total;
 
-    entries.push({ id: uid(), ts: Date.now(), date, areaId: selectedAreaId, value });
-    save();
-    elValue.value = "";
-    elValue.focus();
-    render();
+    const a = AREAS.find(x => x.id === activeAreaId);
+    elKpiActive.textContent = a ? a.id : "—";
   }
 
-  function deleteEntry(id) {
-    const ix = entries.findIndex(e => e.id === id);
-    if (ix >= 0) {
-      entries.splice(ix, 1);
-      save();
-      render();
-    }
-  }
+  function drawPie(){
+    const date = dayKey();
+    const { sums, total } = computeDayTotals(date);
 
-  function clearAll() {
-    const ok = confirm("Rensa all data? Detta går inte att ångra.");
-    if (!ok) return;
-    entries = [];
-    save();
-    render();
-  }
+    const ctx = elPie.getContext("2d");
+    const W = elPie.width, H = elPie.height;
+    ctx.clearRect(0,0,W,H);
 
-  function renderList() {
-    const list = entries.slice().sort((a, b) => b.ts - a.ts);
-    if (list.length === 0) {
-      elList.innerHTML = `<div class="item"><div class="meta"><div class="tag">Inga poster ännu.</div></div></div>`;
+    // background
+    ctx.fillStyle = "#fbfcff";
+    ctx.fillRect(0,0,W,H);
+
+    // if no data
+    if (total === 0){
+      ctx.fillStyle = "#64748b";
+      ctx.font = "700 18px system-ui, -apple-system, Segoe UI, Roboto";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Ingen data för dagen", W/2, H/2);
       return;
     }
 
-    elList.innerHTML = list.map(e => `
-      <div class="item">
-        <div class="meta">
-          <div>${areaLabel(e.areaId)}</div>
-          <div class="tag">${e.date}</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:10px">
-          <div class="num">${e.value}</div>
-          <button class="btn" data-del="${e.id}">Ta bort</button>
-        </div>
-      </div>
-    `).join("");
+    // donut style pie
+    const cx = W/2, cy = H/2;
+    const r = Math.min(W,H)*0.33;
+    const inner = r*0.58;
 
-    elList.querySelectorAll("[data-del]").forEach(btn => {
-      btn.addEventListener("click", () => deleteEntry(btn.getAttribute("data-del")));
-    });
-  }
+    // colors (12 slices)
+    const colors = [
+      "#2563eb","#ef4444",
+      "#0ea5e9","#f97316",
+      "#22c55e","#a855f7",
+      "#14b8a6","#eab308",
+      "#64748b","#fb7185",
+      "#3b82f6","#f59e0b",
+    ];
 
-  function computeTotals() {
-    const totalsByArea = new Map();
-    let grand = 0;
-    for (const e of entries) {
-      totalsByArea.set(e.areaId, (totalsByArea.get(e.areaId) || 0) + e.value);
-      grand += e.value;
+    let start = -Math.PI/2;
+    let i = 0;
+
+    for (const a of AREAS){
+      const v = sums.get(a.id) || 0;
+      if (v <= 0) { i++; continue; }
+      const ang = (v/total) * Math.PI*2;
+
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,start,start+ang);
+      ctx.closePath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+
+      start += ang;
+      i++;
     }
-    return { totalsByArea, grand };
+
+    // cut inner
+    ctx.beginPath();
+    ctx.arc(cx,cy,inner,0,Math.PI*2);
+    ctx.closePath();
+    ctx.fillStyle = "#fbfcff";
+    ctx.fill();
+
+    // center text
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "900 30px system-ui, -apple-system, Segoe UI, Roboto";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(total), cx, cy-6);
+
+    ctx.fillStyle = "#64748b";
+    ctx.font = "700 13px system-ui, -apple-system, Segoe UI, Roboto";
+    ctx.fillText("Total", cx, cy+22);
   }
 
-  function stageClass(index) {
-    if (index % 3 === 1) return "alt";
-    if (index % 3 === 2) return "soft";
-    return "";
-  }
+  function renderLegend(){
+    const date = dayKey();
+    const { sums, total } = computeDayTotals(date);
+    const rows = AREAS
+      .map(a => ({ a, sum: sums.get(a.id) || 0 }))
+      .filter(x => x.sum > 0)
+      .sort((x,y) => y.sum - x.sum);
 
-  function renderTotals() {
-    const { totalsByArea, grand } = computeTotals();
-    elGrandTotal.textContent = grand;
-    elCountTotal.textContent = entries.length;
-
-    const rows = AREAS.map(a => ({ a, sum: totalsByArea.get(a.id) || 0 }))
-      .filter(row => row.sum > 0);
-
-    if (rows.length === 0) {
-      elTotals.innerHTML = `<div class="total-row"><span>Inga data</span><strong>0</strong></div>`;
-      elDistribution.innerHTML = "";
+    if (rows.length === 0){
+      elLegend.innerHTML = "";
       return;
     }
 
-    elTotals.innerHTML = rows.map(({ a, sum }, index) => `
-      <div class="pia-row ${stageClass(index)}">
-        <div class="stage">${a.stage}</div>
-        <div class="flow">${a.flow}</div>
-        <div class="sum">${sum}</div>
-      </div>
-    `).join("");
-
-    const max = Math.max(...rows.map(r => r.sum));
-    elDistribution.innerHTML = `
-      <div class="dist-label">Fördelning per flöde</div>
-      ${rows.map(({ a, sum }) => {
-        const scale = max ? sum / max : 0;
-        return `
-          <div class="dist-row">
-            <div>
-              <div style="font-size:13px; font-weight:600">${a.flow}</div>
-              <div class="dist-bar" aria-hidden="true">
-                <span style="transform:scaleX(${scale})"></span>
-              </div>
-            </div>
-            <div style="text-align:right; font-weight:700">${sum}</div>
+    elLegend.innerHTML = rows.map(x => {
+      const pct = total ? Math.round((x.sum/total)*100) : 0;
+      return `
+        <div class="legRow">
+          <div style="min-width:0">
+            <div class="name">${x.a.stage}</div>
+            <div class="sub">${x.a.flow} · ${pct}%</div>
           </div>
-        `;
-      }).join("")}
-    `;
+          <div class="num">${x.sum}</div>
+        </div>
+      `;
+    }).join("");
   }
 
-  function render() {
-    renderAreaButtons();
-    renderList();
+  function render(){
+    const d = dayKey();
+    elDateTitle.textContent = d;
+    renderRows();
     renderTotals();
+    drawPie();
+    renderLegend();
+    elHintArea.textContent = areaLabel(activeAreaId);
   }
 
-  function toCsvSemicolon(rows) {
+  // Export CSV (semikolon) - en rad per inmatat tal
+  function toCsvSemicolon(rows){
     const esc = (s) => {
       const str = String(s ?? "");
       if (/[;"\n\r]/.test(str)) return `"${str.replaceAll('"','""')}"`;
@@ -483,22 +651,27 @@
     return rows.map(r => r.map(esc).join(";")).join("\r\n");
   }
 
-  function exportCsv() {
-    const header = ["Datum", "Område", "Flöde", "Värde"];
-    const rows = entries
-      .slice()
-      .sort((a, b) => a.date.localeCompare(b.date) || a.areaId.localeCompare(b.areaId))
-      .map(e => {
-        const a = AREAS.find(x => x.id === e.areaId);
-        return [e.date, a?.stage ?? "", a?.flow ?? "", e.value];
-      });
+  function exportCsv(){
+    const header = ["Datum","Område","Flöde","Värde"];
+    const rows = [];
+
+    // exportera ALLA datum så du kan göra diagram över tid
+    const dates = Object.keys(store.byDate).sort();
+    for (const date of dates){
+      for (const a of AREAS){
+        const nums = getNums(date, a.id);
+        for (const n of nums){
+          rows.push([date, a.stage, a.flow, n]);
+        }
+      }
+    }
 
     const csv = toCsvSemicolon([header, ...rows]);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
-    const stamp = new Date().toISOString().slice(0, 19).replaceAll(":", "-");
+    const stamp = new Date().toISOString().slice(0,19).replaceAll(":","-");
     link.href = url;
     link.download = `PIA_${stamp}.csv`;
     document.body.appendChild(link);
@@ -507,18 +680,49 @@
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  function init() {
+  // Warning on leave/reload
+  window.addEventListener("beforeunload", (e) => {
+    e.preventDefault();
+    e.returnValue = "";
+    return "";
+  });
+
+  // Init
+  function init(){
     load();
     elDate.value = nowIsoDate();
+    setActive(activeAreaId);
+
+    elDate.addEventListener("change", () => {
+      // byter dag: behåll aktiv rad men rensa input + fokusera
+      elQuick.value = "";
+      showQuickInput(true);
+      requestAnimationFrame(() => elQuick.focus({ preventScroll:true }));
+      render();
+    });
+
+    // Quick input behavior: Enter = add; Escape = close; Backspace on empty = do nothing
+    elQuick.addEventListener("keydown", (e) => {
+      if (e.key === "Enter"){
+        e.preventDefault();
+        addNumber(elQuick.value);
+      } else if (e.key === "Escape"){
+        e.preventDefault();
+        showQuickInput(false);
+      }
+    });
+
+    // Tapping anywhere in the table card should keep keyboard flow (fast)
+    elRows.addEventListener("click", () => {
+      showQuickInput(true);
+      requestAnimationFrame(() => elQuick.focus({ preventScroll:true }));
+    }, { passive:true });
+
+    elExport.addEventListener("click", exportCsv);
+    elUndo.addEventListener("click", () => undoLast());
+    elClearDay.addEventListener("click", clearDay);
 
     render();
-
-    elAdd.addEventListener("click", addEntry);
-    elValue.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") addEntry();
-    });
-    elExport.addEventListener("click", exportCsv);
-    elClear.addEventListener("click", clearAll);
   }
 
   init();
